@@ -140,6 +140,9 @@ V prvním kroku (A) \textbf{client} požaduje autorizaci po \textbf{resource own
 Jelikož autorizační protokol OAuth 2.0 není navržen pro autentizaci uživatelů a neposkytuje možnost získání dalších informací o přihlášeném uživateli, byl v implementaci použit spolu s technologií OpenID Connect. 
 
 \section{OpenID Connect}
+OpenID Connect 1.0 \footnote{Dokumentace OpenID Connect 1.0, \url{www.openid.net/specs/openid-connect-core-1_0.html}} je protokol, který umožňuje aplikaci verifikovat identitu uživatele na základě autentizace provedené autorizačním serverem. Jedná se o autentizační vrstvu nad protokolem OAuth 2.0. Důležitou vlastností Open ID Connect je možnost získání základních informací o přihlášeném uživateli. 
+
+\par
 Claim, Scope, Service provider, identity provider, diagram, redirect URL.
 autentizace
 vrstva nad Oauth
@@ -148,7 +151,7 @@ endpoint pro ziskani informaci o prihlasenem uzivately
 standardizovany seznam scope a implementace
 slouží k přihlášení 
 umožnuje použít 1 učet v ostatních systémech, nejen v tom systému kde byl založen
-\section{JSON Web Token}
+JSON Web Token
 \section{Apache HTTP server}
 Apache HTTP server \cite{apache} (zkráceně Apache) je open-source multiplatformní software, sloužící jako webový server. Apache podporuje velké množství modulů, které rozšiřují základní funkce jádra webového serveru. Hojně využívané moduly podporují použití programovacích jazyků na straně serveru, autentizaci, TLS (Transport Layer Security), SSL (Secure Sockets Layer), proxy a logovací soubory. Konfigurace Apache serveru je založena na souborech \textbf{.htaccess}, v kterých jsou pomocí tzv. direktiv nastavovány pravidla pro zpracování HTTP požadavků. Konfigurace v souboru \textbf{.htaccess} se vztahují pouze na soubory, které jsou umístěné v stejném adresáři jako soubor \textbf{.htaccess} a nebo v jeho podadresářích. Globální konfigurace Apache serveru se standardně realizuje v hlavním konfiguračním souboru \textbf{httpd.conf}. \par
 Webový server Apache verze 2 jsem v autentizační a autorizační infrastruktuře využil jako základní prostředek pro zpracování uživatelských HTTP požadavků na přihlášení do videokonferenčních systémů Shongo a Adobe Connect. Konkrétní způsob konfigurace Apache spolu s OpenID Connect modulem popisuji v sekci \hyperref[apacheConfig]{Konfigurace Apache}.
