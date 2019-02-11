@@ -118,21 +118,22 @@ Dalším požadavkem bylo, aby implementace byla zakomponována do stávajícíh
 \chapter{Použité technologie}
 V této kapitole popisuji technologie, které jsem použil při implementaci mé diplomové práce. Popis doplňují informace o tom, v které konkrétní části implementace jsem danou technologii použil.
 \section{OAuth}
-OAuth 2.0 \footnote{OAuth 2.0 RFC, \url{www.tools.ietf.org/html/rfc6749}} je autorizační framework, který umožňuje aplikacím třetí strany získat omezený přístup k HTTP službám. Zmíněný framework představuje autorizační vrstvu, která odděluje role klienta od držitele zdrojů. OAuth 2.0 popisuje následující role: 
+OAuth 2.0 \footnote{OAuth 2.0 RFC, \url{www.tools.ietf.org/html/rfc6749}} je autorizační framework, který umožňuje aplikacím třetí strany získat omezený přístup k HTTP službám. Tento framework je tedy určen pro bezpečné delegování přístupu. Zmíněný framework představuje autorizační vrstvu, která odděluje role klienta od držitele zdrojů. OAuth 2.0 popisuje následující role: 
 \begin{itemize}
-    \item \textbf{resource owner} - entita, schopná dát souhlas s přístupem k požadovanému zdroji, většinou koncový uživatel,
-    \item \textbf{resource server} - server, uchovávající chráněné zdroje, schopný odpovídat požadavkům přistupujícím k chráněným zdrojům,
-    \item \textbf{client} - aplikace, vytvářející požadavky na získání chráněných zdrojů se svolením resource owner,
-    \item \textbf{authorization server} - server, vydávající \textbf{access token} pro roli \textbf{client} po úspěšném ověření \textbf{resource owner} a získání oprávnění.
+    \item \textbf{resource owner} je entita, schopná dát souhlas s přístupem k požadovanému zdroji, většinou koncový uživatel,
+    \item \textbf{resource server} představuje server, uchovávající chráněné zdroje, schopný odpovídat požadavkům přistupujícím k chráněným zdrojům,
+    \item \textbf{client} je aplikace, vytvářející požadavky na získání chráněných zdrojů se svolením \textbf{resource owner},
+    \item \textbf{authorization server} je server, vydávající \textbf{access token} pro roli \textbf{client} po úspěšném ověření \textbf{resource owner} a získání oprávnění.
 \end{itemize}
-\textbf{Access token} je pověření používané k získání přístupu k chráněným zdrojům. 
-Schéma komunikace v protokolu OAuthn 2.0 popisuje následující obrázek \hyperref[fig:oauthn]{3.1}. 
+\textbf{Access token} je pověření používané k získání přístupu k chráněným zdrojům. Uvedené pověření \textbf{access token} se obvykle vydává ve formátu \textbf{JWT (JSON Web Token)}, kterému se věnuji v následující sekci v rámci popisu technologie \hyperref[sec:oidc]{OpenID Connect}.  \par
+
+Schéma komunikace v protokolu OAuthn 2.0 popisuje následující obrázek \hyperref[fig:oauth]{3.1}. 
 
 \begin{figure}[H]
-\caption{Diagram detailu sezení}
+\caption{Schéma komunikace v protokolu OAuth 2.0}
 \centering
 \includegraphics[width=12.8cm]{pics/diplomkaOauth} 
-\label{fig:oauthn}
+\label{fig:oauth}
 \end{figure}
 \par 
 
@@ -140,9 +141,34 @@ V prvním kroku (A) \textbf{client} požaduje autorizaci po \textbf{resource own
 Jelikož autorizační protokol OAuth 2.0 není navržen pro autentizaci uživatelů a neposkytuje možnost získání dalších informací o přihlášeném uživateli, byl v implementaci použit spolu s technologií OpenID Connect. 
 
 \section{OpenID Connect}
-OpenID Connect 1.0 \footnote{Dokumentace OpenID Connect 1.0, \url{www.openid.net/specs/openid-connect-core-1_0.html}} je protokol, který umožňuje aplikaci verifikovat identitu uživatele na základě autentizace provedené autorizačním serverem. Jedná se o autentizační vrstvu nad protokolem OAuth 2.0. Důležitou vlastností Open ID Connect je možnost získání základních informací o přihlášeném uživateli. 
+\label{sec:oidc}
+OpenID Connect 1.0 \footnote{Dokumentace OpenID Connect 1.0, \url{www.openid.net/specs/openid-connect-core-1_0.html}} je protokol, který umožňuje aplikaci verifikovat identitu uživatele na základě autentizace provedené autorizačním serverem. Jedná se o autentizační vrstvu nad frameworkem OAuth 2.0. Důležitou vlastností OpenID Connect je možnost získat základní informace o přihlášeném uživateli. \par
 
+Hlavním rozšířením protokolu OpenID Connect oproti OAuthn 2.0 umožňující autentizaci je definice nové datové struktury \textbf{ID Token}. Uvedený \textbf{ID Token} je bezpečnostní žeton, který obsahuje informace o autentizaci a případná další doplňková data koncového uživatele. Zmíněné informace nacházející se ve struktuře \textbf{ID Token} nazýváme v tomto kontextu \textbf{Claims}. Popisované \textbf{Claims} vždy nesou informace v dvojici název \textbf{Claim} a hodnota \textbf{Claim}. Představované \textbf{Claims}, které uchovávají informace o autentizované entitě, jsou ve struktuře \textbf{ID Token} zakódovány ve formátu \textbf{JWT} (JSON Web Token)\footnote{JSON Web Token RFC, \url{www.tools.ietf.org/html/rfc7519}}.    \par
+
+\textbf{JWT} je řetězec reprezentující \textbf{Claims} jako JSON objekt\footnote{JavaScript Object Notation RFC, \url{https://tools.ietf.org/html/rfc7159}} zakódovaný pomocí Base64\footnote{Base64 kódování, \url{www.tools.ietf.org/html/rfc4648}} kódování a HMAC s SHA-256\footnote{HMAC s SHA-256, \url{ www.tools.ietf.org/html/rfc4868}}.  Popisovaný \textbf{JWT} je standardně rozdělen na části hlavičku a tělo, ze kterých se po aplikaci Base64 a HMAC s SHA-256 na tyto části vytváří výsledný řetězec. Konkrétní mechanizmus způsobu vytváření \textbf{JWT} je detailně popsán v odkazovaném RFC. \par
+
+V protokolu OpenID Connect musí struktura \textbf{ID Token} obsahovat následující \textbf{Claims}:
+
+\begin{itemize}
+    \item \textbf{iss} představuje identifikátor entity, která vytvořila \textbf{ID Token}, 
+    \item \textbf{sub} označuje identifikátor autentizovaného uživatele, 
+    \item \textbf{aud} je pole identifikátorů entit, pro které je vydaný \textbf{ID Token} určen,
+    \item \textbf{exp} reprezentuje časový údaj, do kdy je vydaný \textbf{ID Token} platný
+    \item \textbf{iat} označuje informaci, kdy byl \textbf{ID Token} vydán.
+\end{itemize}
 \par
+Před samotným rozborem schéma komunikace v protokolu OpenID Connect je vhodné definovat následující pojmy. \textbf{OpenID Provider (OP)} představuje autorizační server schopný autentizovat koncového uživatele. Jednou z klíčových funkcí \textbf{OP} je možnost poskytnout \textbf{Relying Party} \textbf{Claims} o autentizační události a autentizovaném uživateli. Zmíněný pojem \textbf{Relying Party (RP)} označuje klientskou aplikaci, požadující autentizaci uživatele a \textbf{Claims} od \textbf{OP}. \par
+Následující obrázek \hyperref[fig:oidc]{3.2} popisuje s použitím dříve definovaných pojmů schéma komunikace v protokolu OpenID Connect.
+
+\begin{figure}[H]
+\caption{Schéma komunikace v protokolu OpenID Connect 1.0}
+\centering
+\includegraphics[width=12.8cm]{pics/diplomkaOIDC} 
+\label{fig:oidc}
+\end{figure}
+\par 
+
 Claim, Scope, Service provider, identity provider, diagram, redirect URL.
 autentizace
 vrstva nad Oauth
@@ -157,7 +183,7 @@ Apache HTTP server \cite{apache} (zkráceně Apache) je open-source multiplatfor
 Webový server Apache verze 2 jsem v autentizační a autorizační infrastruktuře využil jako základní prostředek pro zpracování uživatelských HTTP požadavků na přihlášení do videokonferenčních systémů Shongo a Adobe Connect. Konkrétní způsob konfigurace Apache spolu s OpenID Connect modulem popisuji v sekci \hyperref[apacheConfig]{Konfigurace Apache}.
 
 \section{PHP}
-PHP \cite{php5} (PHP: Hypertext Preprocessor) je široce používaný open-source skriptovací programovací jazyk, určený především pro tvorbu webových stránek. Zmíněný programovací je multiplatformní, kompatibilní s většinou běžně používaných serverů a podporuje připojení k různým databázovým systémům. Výhodou PHP je rozsáhlý soubor funkcí zabudovaných v základní knihovně, velké množství již vytvořených projektů a kódů, které lze zdarma využít, podpora objektového programování a rozsáhlá dokumentace\footnote{PHP dokuemntace, \url{www.php.net/manual/en/}}. Soubory obsahující zdrojový kód PHP programu jsou standardně označeny příponou \textbf{.php}. \par
+PHP \cite{php5} (PHP: Hypertext Preprocessor) je široce používaný open-source skriptovací programovací jazyk, určený především pro tvorbu webových stránek. Zmíněný programovací je multiplatformní, kompatibilní s většinou běžně používaných serverů a podporuje připojení k různým databázovým systémům. Výhodou PHP je rozsáhlý soubor funkcí zabudovaných v základní knihovně, velké množství již vytvořených projektů a kódů, které lze zdarma využít, podpora objektového programování a rozsáhlá dokumentace\footnote{PHP dokumentace, \url{www.php.net/manual/en/}}. Soubory obsahující zdrojový kód PHP programu jsou standardně označeny příponou \textbf{.php}. \par
 V představovaném programovacím jazyce jsem na straně serveru shongo-auth.cesnet.cz implementoval zpracování claims získaných z OpenID Connect po autentizaci uživatele u vybraného Identity providera. Zmíněná implementace je detailněji popsána v kapitolách Implementace autentizačního a autorizačního modulu pro \hyperref[ACImpl]{Adobe Connect} a \hyperref[ShongoImpl]{Shongo}. 
 
 \section{PostgreSQL}
