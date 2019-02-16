@@ -52,7 +52,7 @@
     university    = mu,
     faculty       = fi,
     type          = mgr,
-    author        = Lukáš Kotol,
+    author        = Bc. Lukáš Kotol,
     gender        = m,
     advisor       = {RNDr. Miloš Liška, Ph.D.},
     title         = {Autentizační a autorizační infrastruktura pro videokonferenční prostředí},
@@ -101,12 +101,24 @@ Text této diplomové práce je členěn následujícím způsobem. První čás
 \chapter{Návrh autorizační a autentizační infrastruktury}
 \section{Popis stávající autentizační a autorizační infrastruktury}
 Stávající autentizace a autorizace webkonferenční infrastruktury Shongo a Adobe Connect je založena na systémech Shibboleth \footnote{Shibboleth, \url{www.shibboleth.net}} a Perun \footnote{Perun, \url{www.perun-aai.org/}}. Shibboleth je open-source software, který slouží jako autentizační vrstva s jednotným přihlašováním mezi několika systémy. Perun je centralizovaná služba určená pro správu uživatelských údajů. V dosavadní webkonferenční infrastruktuře, byla služba Perun využívána k získání dodatečných informací o autentizovaném uživateli. \par
-Infrastruktura využívající systémy Shibboleth a Perun je implementována na serveru shongo-auth.cesnet.cz. Uvedený server tedy odbavuje požadavky uživatelů na přihlášení do webkonferenčních systémů Shongo a Adobe Connect. Po úspěšné autentizaci je uživatel přesměrován na požadované portály. 
+Infrastruktura využívající systémy Shibboleth a Perun je implementována na serveru shongo-auth.cesnet.cz. Uvedený server tedy odbavuje požadavky uživatelů na přihlášení do webkonferenčních systémů Shongo a Adobe Connect. Po úspěšné autentizaci je uživatel přesměrován na požadované portály. Abychom pochopily změny provedené ve stávající autentizační a autorizační infrastruktuře, je vhodné si detailně představit, jakým způsobem se zpracovávají požadavky na autentizaci uživatelů při přihlašování do zmíněných webkonferenčních systémů.  
 
 \subsection{Infrastruktura Adobe Connect}
-Webkonferenční platforma Adobe Connect využívá k autentizaci a autorizaci systém Shibboleth a interní databázi, ve které si eviduje uživatele. V uvedené databázi si uchovává informace o uživatelích, které získá po úspěšné autentizaci uživatele. Pokud záznam o uživateli v databázi neexistuje, je vytvořen. Jelikož Adobe Connect využívá jen identifikaci, jméno, příjmení a mail autentizovaného uživatele, není potřeba využívat službu Perun.  
+Pokud se chce uživatel přihlásit do webkonferenční služby Adobe Connect provozované na portálu connect.cesnet.cz klikne na přihlašovací odkaz, který ho přesměruje na URL adresu \texttt{https://shongo-auth.cesnet.cz/aclogin-ng/instance/connect}. Jelikož se jedná o adresu která je chráněna autentizačním systémem Shibboleth, uživatel je před samotným přístupem na uvedenou adresu přesměrován na rozcestník federace identit. Na zmíněném rozcestníku federace identit, který se nachází na URL \texttt{https://ds.eduid.cz/wayf.php} si uživatel vybere poskytovatele identity, pomocí kterého se přihlásí. Po přihlášení u vybraného poskytovatele identity je uživatel  přesměrován zpět na požadovanou URL \texttt{https://shongo-auth.cesnet.cz/aclogin-ng/instance/connect} a začne zpracování dat získaných po autentizaci. Jedná se o informace o autentizovaném uživateli, které byla nastaveny do proměnných prostředí PHP serveru, nacházející se v poli \texttt{\$\_SERVER}. Konkrétně jde o tyto indexy zmíněného pole: 
+
+\begin{itemize}
+    \item \textbf{eppn} představuje unikátní uživatelský identifikátor v rámci poskytovatele identit, 
+    \item \textbf{mail} je email uživatele, 
+    \item \textbf{givenName} odkazuje na jméno uživatele,
+    \item \textbf{sn} představuje příjmení uživatele.
+\end{itemize}
+
+Po nastavení proměnných prostředí se spustí hlavní metoda \texttt{\_run} PHP skriptu \texttt{Application.php} umístěném v adresáři \texttt{/data/app/prod/aclogin-ng/lib/AcLogin/}. Prvním krokem je v uvedené metodě inicializace konfigurace. Po té následuje vytvoření objektu představujícího uživatele pomocí třídy \texttt{AcLogin\_RemoteUser} z popisovaných proměnných prostředí. Dalším krokem je inicializace API objektu, usnadňující manipulaci s interní databází uživatelů systému Adobe Connect. Předtím než začne vytvořený objekt rozhraní Adobe Connect využívat, provede se pomocí tohoto objektu přihlášení administrátora do databázového systému. \par 
+Další fází v představovaném PHP skriptu je využití popisovaného API objektu ke kontrole, zda uživatel, který se do systému přihlašuje již v interní databázi existuje. Popisovaná kontrola existence uživatele se provede vůči jeho unikátnímu identifikátoru \textbf{eppn}. Pokud uživatel v databázi Adobe Connect neexistuje, je vytvořen a uložen do databáze. Jestliže uživatel v databázi existuje a je povolena dodatečná aktualizace uživatelských údajů při přihlášení, aktualizují se uživatelovi údaje v databázi Adobe Connect. \par
+Po té následuje část zdrojového kódu, v které je provedeno samotné přihlášení uživatele uživatele pomocí unikátního identifikátoru \textbf{eppn} a generovaného hesla. Zmíněné heslo se generuje pomocí hašovací funkce MD5\footnote{Algoritmus hašovací funkce MD5, \url{www.tools.ietf.org/html/rfc1321}}, které se na vstup předá řetězec složený z \textbf{eppn} uživatele a náhodného neměnného řetězce, tzv. soli. Následuje kontrola úspěšnosti přihlášení a vytvoření řetězce sezení, tzv. \textbf{Session String}. Představený \textbf{Session String} jednoznačně identifikuje provedenou autentizaci. Pokud přihlášení proběhlo v pořádku, autentizovaný uživatel je s URL parametrem \textbf{Session String} přesměrován na svoji úvodní stránku webkonferečního systému Adobe Connect.      
 
 \subsection{Infrastruktura Shongo}
+Podobně jako autentizační infrastruktura systému Adobe Connect je... \par
 Rezervační systém Shongo využívá při přihlašování uživatelů jak Shibboleth, tak webovou službu Perun. Po úspěšné autentizaci následuje získání dodatečných informací o uživateli. Prvním krokem je zjištění jedinečného identifikátoru v systému Perun, tzv. \textbf{perun\_id}. Tento identifikátor je vyhledán pomocí jména přihlášeného uživatele webovou službou Perun. Jakmile je znám identifikátor \textbf{perun\_id}, vytvoří se další požadavek na webovou službu Perun na získání dodatečných uživatelských údajů. Konkrétně jde o informace o telefonním číslu, jazyku, časové zóně, příslušnosti do organizace a identifikátoru v rámci organizace uživatele.  
 
 \section{Analýza požadavků}
@@ -180,8 +192,8 @@ Webový server Apache verze 2 jsem v autentizační a autorizační infrastruktu
 
 \section{PHP}
 PHP \cite{php5} (PHP: Hypertext Preprocessor) je široce používaný open-source skriptovací programovací jazyk, určený především pro tvorbu webových stránek. Zmíněný programovací je multiplatformní, kompatibilní s většinou běžně používaných serverů a podporuje připojení k různým databázovým systémům. Výhodou PHP je rozsáhlý soubor funkcí zabudovaných v základní knihovně, velké množství již vytvořených projektů a kódů, které lze zdarma využít, podpora objektového programování a rozsáhlá dokumentace\footnote{PHP dokumentace, \url{www.php.net/manual/en/}}. Soubory obsahující zdrojový kód PHP programu jsou standardně označeny příponou \textbf{.php}. \par
-V představovaném programovacím jazyce PHP jsem na straně serveru shongo-auth.cesnet.cz implementoval zpracování claims získaných z UserInfo Endpointu OpenID Connect po autentizaci uživatele. Zmíněná implementace je detailněji popsána v kapitolách Implementace autentizačního a autorizačního modulu pro \hyperref[ACImpl]{Adobe Connect} a \hyperref[ShongoImpl]{Shongo}. 
-
+V představovaném programovacím jazyce PHP jsem na straně serveru shongo-auth.cesnet.cz implementoval zpracování claims získaných z UserInfo Endpointu OpenID Connect po autentizaci uživatele. Zmíněná implementace je detailněji popsána v kapitolách Implementace autentizačního a autorizačního modulu pro \hyperref[ACImpl]{Adobe Connect} a \hyperref[ShongoImpl]{Shongo}. \par
+TODO Zend
 \section{PostgreSQL}
 PostgreSQL \cite{postgresql} je open-source multiplatformní objektově relační databázový systém napsaný v programovacím jazyce C. Tento databázový systém je založen na dotazovacím jazyku SQL (Structured Query Language), který je používám pro práci s daty. Data v databázích jsou standardně uložena v tabulkách, které mají definované datové typy. Jednou z hlavních předností PostgreSQL je fakt, že je koncipován tak, aby ve velké míře podporoval rozšířitelnost. To umožňuje vytvářet vlastní datové typy a funkce. Další předností je možnost definovat spouště, pohledy, řízení paralelního zpracování dat, datovou integritu a politiku zotavení databáze po havárii. \par
 V rámci této diplomové práce jsem pracoval s popisovaným databázovým systémem při modifikaci databázového schématu rezervačním systému Shongo. Dále jsem PostgreSQL využil při nahrazení primárního klíče uživatele z \textbf{perun\_id} na unikátní identifikátor uživatele v rámci OpenID Connect \textbf{sub}. Tuto změnu detailněji popisuji v sekci TODO. 
