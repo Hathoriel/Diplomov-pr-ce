@@ -164,9 +164,18 @@ Po té se předá řízení algoritmu zpět do metody \texttt{dispatch} v tříd
 Autentizovanému \textbf{Clientu} Shongo je po té vydán  \textbf{Access Token} na základě požadavku s přiloženým \textbf{Authorize code}.   
 Zdroj poskytující \textbf{Access Token} je přítomný na URL adrese \texttt{shongo-auth.cesnet.cz/authn/oic/token}. \par 
 
-Obdobně jsou autentizovanému \textbf{Clientu} poskytnuty dodatečné uživatelské údaje na základě přiloženého \textbf{Authorize code}. Zdroj který popisované uživatelské údaje drží je dostupný na URL adrese \texttt{shongo-auth.cesnet.cz/authn/oic/userinfo}. 
+Obdobně jsou autentizovanému \textbf{Clientu} poskytnuty dodatečné uživatelské údaje na základě přiloženého \textbf{Authorize code}. Zdroj který popisované uživatelské údaje drží je dostupný na URL adrese \texttt{shongo-auth.cesnet.cz/authn/oic/userinfo}.  \par 
 
-TODO [diagram schéma komunikace v při zpracování autentizačního požadavku do systému shongo]. 
+Následující \hyperref[fig:shongoAuthnProcess]{diagram} znázorňuje přehlednou formou výše popsané procesy v stávající autentizační a autorizační infrastruktuře Shongo. 
+
+\begin{figure}[H]
+\caption{Schéma komunikace při zpracování autentizačního požadavku do systému Shongo}
+\centering
+\includegraphics[width=12.8cm]{pics/shongoAuthProcess} 
+\label{fig:shongoAuthnProcess}
+\end{figure}
+\par 
+
 
 \section{Analýza požadavků}
 Z konzultací s vedoucím diplomové práce vyplynuly následující požadavky. Jak už bylo uvedeno v úvodu, hlavní podstatou této diplomové práce je vytvoření nové autentizační a autorizační infrastruktury pro služby Adobe Connect a Shongo provozované sdružením CESNET. Požadavkem bylo, aby tato nová autentizační a autorizační infrastruktura byla implementována v souladu se specifikací OpenID Connect  \footnote{OpenID Connect specifikace, \url{www.openid.net/specs/openid-connect-core-1_0.html}}. Nezbytnou součástí implemtace bylo, aby autentizační a autorizační infrastruktura byla navázána na Proxy IdP OpenID Connect, které provozuje sdružení CESNET\footnote{Proxy IdP OpenID Connect, \url{www.login.cesnet.cz/oidc/}}. Proxy IdP je komponenta mezi poskytovatelem služeb a identit, která umožňuje službě aby byla dostupná prostřednictvím různých poskytovatelů identit.  \par
