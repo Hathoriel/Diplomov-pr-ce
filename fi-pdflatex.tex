@@ -303,6 +303,25 @@ V této kapitole seznamuji s detailním postupem při implementaci a instalaci n
 
 \section{Instalace a konfigurace Apache modulu pro OpenID Connect}
 \label{apacheConfig}
+Příkazy popisované během instalace Apache modulu pro OpenID Connect byly v rámci diplomové práce prováděny na serveru \texttt{shongo-authn.cesnet.cz} s operačním systémem Debian GNU/Linux 7 (wheezy). 
+\par 
+Autentizační a autorizační modul, který slouží pro zprovoznění serveru jako tzv. \textbf{OpenID Connect Relying Party} se nazývá \textbf{mod\_auth\_openidc\footnote{OpenID Connect Relying Party pro Apache server \url{https://github.com/zmartzone/mod\_auth\_openidc}}}. Důležitým předpokladem pro instalaci představeného modulu je již dříve nainstalovaný server Apache. 
+\par 
+Prvním krokem byla instalace nezbytných knihoven \textbf{libjansson4} a \textbf{libhiredis0.13}, \textbf{libcjose0\_0.5} a \textbf{libapache2-mod-auth-openidc\_2.3.3-1}.
+\par
+Pokud instalace uvedených knihoven proběhla v pořádku dále následovalo spuštění příkazu který zapnul samotný modul \texttt{a2enmod auth\_openidc}. Dále následovala konfigurace nainstalovaného modulu v konfiguračním souboru Apache serveru \texttt{/etc/apache2/sites-available/default-ssl}. Do zmíněného souboru byla přidána následující konfigurace: 
+
+\begin{footnotesize}
+\begin{center}
+\begin{tabular}{ |c|c| } 
+ \hline
+ LoadModule auth\_openidc\_module /usr/lib/apache2/modules/mod\_auth\_openidc.so & cell2  \\ 
+ cell4 & cell5 \\ 
+ cell7 & cell8 \\ 
+ \hline
+\end{tabular}
+\end{center}
+\end{footnotesize}
 \section{Implementace autentizačního a autorizačního systému pro systém Adobe Connect}
 \label{ACImpl}
 \section{Implementace autentizačního a autorizačního systému pro systém Shongo}
