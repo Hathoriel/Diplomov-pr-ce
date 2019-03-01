@@ -98,6 +98,7 @@ Cílem této diplomové práce je navrhnout a implementovat novou autentizační
 Výsledkem mé práce je plně funkční autentizační a autorizační infrastruktura zprovozněná v produkčním prostředí webkonferenční platformy sdružení CESNET. Vytvořenou autentizační a autorizační infrastrukturu jsem navrhnul a implementoval na serveru shongo-auth.cesnet.cz pomocí technologie OpenID Connect. Implementovaná infrastruktura je integrována do Proxy IdP provozované sdružením CESNET tak, aby autentizovala a autorizovala uživatele, využívající služeb portálů meetings.cesnet.cz a connect.cesnet.cz. Nová implementace oproti původní rozšiřuje způsoby přihlášení o možnosti použít účty společností Google, Facebook a dalších mezinárodních akademických organizací integrovaných do federace identit eduGAIN. Další předností nové implementace je vynechání autorizačního procesu pomocí externí webové služby Perun\footnote{Perun, \url{www.perun-aai.org}}, která poskytovala základní údaje o autentizovaném uživateli. Nyní jsou údaje přihlášeného uživatele zprostředkovány v rámci autentizačního procesu díky technologii OpenID Connect. Novou implementací došlo tedy k významnému zjednodušení složitosti autentizační a autorizační infrastruktury. \par
 
 Text této diplomové práce je členěn následujícím způsobem. První část se věnuje úvodu. Po úvodu následuje druhá kapitola, ve které popisuji návrh infrastruktury autorizačního a autentizačního systému. V třetí kapitole se věnuji použitým technologiím, které jsem využil v rámci implementace diplomové práce. V následující čtvrté kapitole se zabývám popisem implementace. Poslední pátá kapitola shrnuje výsledky mé práce v závěru.  
+\section{Slovník pojmů}
 
 \chapter{Návrh autorizační a autentizační infrastruktury}
 V této kapitole se budu věnovat návrhu autorizační a autentizační infrastruktury pro systémy Adobe Connect a Shongo. V následující sekci nejprve popisuji stávající stav autentizační a autorizační infrastruktury. Dále se v další sekci věnuji analýze požadavků na novou infrastrukturu. V poslední sekci této kapitoly se zabývám samotným návrhem nové autentizační a autorizační infrastruktury, který plyne z provedené analýzy stávajícího systému.    
@@ -194,15 +195,15 @@ Dalším požadavkem bylo, aby implementace byla z důvodu centralizace autentiz
 
 
 \section{Návrh nové infrastruktury}
-Zde se budu věnovat otázce, jakým způsobem je koncipován návrh nové autentizační a autorizační infrastruktury pro systémy Adobe Connect a Shongo. 
+Zde se budu věnovat otázce, jakým způsobem je koncipován návrh nové autentizační a autorizační infrastruktury pro systémy Adobe Connect a Shongo. Společným prvkem pro oba zmíněné systémy je fakt, že návrh nové autentizační a autorizační architektury navazuje na architekturu stávající. 
 
 \subsection{Infrastruktura Adobe Connect}
-Nová implementace bude využívat již existující autentizační a autorizační infrastruktury a bude s ní úzce svázána. To znamená, že bude dodána implementace do stávajícího autentizačního serveru \texttt{shongo-authn.cesnet.cz}. Jak už bylo uvedeno výše, stávající autentizační a autorizační infrastruktura využívá systému Shibboleth, který bude v rámci této diplomové práce nahrazen systémem OpenID Connect. To znamená, že bude muset být systém OpenID Connect a moduly na straně autentizačního serveru \texttt{shongo-authn.cesnet.cz} do sebe vhodným způsobem integrovány. Tuto skutečnost dosáhneme řádnou instalací systému OpenID Connect na autentizační server spolu s integrací do webového serveru Apache. Dále musíme zajistit, aby došlo k přemapování proměnných získaných po autentizaci uživatele. Implementaci zmíněného přemapování popisuji v kapitole \hyperref[ACImpl]{Implementace autentizačního a autorizačního modulu pro systém Adobe Connect}. 
+Nová implementace bude využívat již existující autentizační a autorizační infrastruktury a bude s ní úzce svázána. To znamená, že bude dodána implementace do stávajícího autentizačního serveru \texttt{shongo-authn.cesnet.cz}. Jak už bylo uvedeno výše, stávající autentizační a autorizační infrastruktura využívá systému Shibboleth, který bude v rámci této diplomové práce nahrazen systémem OpenID Connect. To znamená, že bude muset být systém OpenID Connect a moduly na straně autentizačního serveru \texttt{shongo-authn.cesnet.cz} do sebe vhodným způsobem integrovány. Tuto skutečnost dosáhneme řádnou instalací  autentizačního modulu OpenID Connect webovéo serveru Apache na autentizační server. Dále musíme zajistit, aby došlo k přemapování proměnných získaných po autentizaci uživatele. Implementaci zmíněného přemapování popisuji v kapitole \hyperref[ACImpl]{Implementace autentizačního a autorizačního modulu pro systém Adobe Connect}. 
 
 \subsection{Infrastruktura Shongo}
-Obdobně jako v případě systému Adobu Connect, bude nová implementace autorizace a autentizace uživatelů úzce propojena se stávající implementací, která se nachází na serveru \texttt{shongo-authn.cesnet.cz}. Analogicky bude muset být provedena instalace systému OpenID Connect a konfigurace v rámci nastavení webového serveru Apache. \par
-V další fázi bude na serveru \texttt{shongo-autn.cesnet.cz} následovat implementace procesu, který zajistí propojení s autorizačním serverem OpenID Connect. Uvedená implementace zaručí mapování nově získaných uživatelských dat do stávajícího mechanizmu autentizace a autorizace uživatele. \par
-Dalším krokem je adaptace systému Shongo na provedené změny v rámci implementace na straně serveru \texttt{shongo-authn.cesnet.cz}. Tuto adaptaci představují dva klíčové body. Prvním je nutnost změny v databázovém schématu týkající se tabulek v kterých si systém Shongo drží identifikátory svých uživatelů. Jedná se o zvětšení velikosti sloupců držící uživatelské identifikátory, jejichž velikost není v rámci stávající implementace dostačující. Příčinou této změny je nahrazení identifikátoru uživatele \textbf{perun\_id} za \textbf{einfra id}, jehož délka by překračovala stávající velikost sloupce. Zmíněné identifikátory jednoznačně identifikují uživatele v rámci služby Perun, respektive v OpenID Connect infrastruktuře CESNETu. Tato změna vychází z nutnosti zbavit se závislosti na webové službě Perun. \par
+Obdobně jako v případě systému Adobu Connect, bude nová implementace autorizace a autentizace uživatelů úzce propojena se stávající implementací, která se nachází na serveru \texttt{shongo-auth.cesnet.cz}. Analogicky bude muset být provedena instalace Apache modulu OpenID Connect a konfigurace v rámci nastavení webového serveru. \par
+V další fázi bude na serveru \texttt{shongo-auth.cesnet.cz} následovat implementace procesu, který zajistí propojení s autorizačním serverem OpenID Connect. Uvedená implementace zaručí mapování nově získaných uživatelských dat do stávajícího mechanizmu autentizace a autorizace uživatele. \par
+Dalším krokem je adaptace systému Shongo na provedené změny v rámci implementace na straně serveru \texttt{shongo-auth.cesnet.cz}. Tuto adaptaci představují dva klíčové body. Prvním je nutnost změny v databázovém schématu týkající se tabulek v kterých si systém Shongo drží identifikátory svých uživatelů. Jedná se o zvětšení velikosti sloupců držící uživatelské identifikátory, jejichž velikost není v rámci stávající implementace dostačující. Příčinou této změny je nahrazení identifikátoru uživatele \textbf{perun\_id} za \textbf{einfra id}, jehož délka by překračovala stávající velikost sloupce. Zmíněné identifikátory jednoznačně identifikují uživatele v rámci služby Perun, respektive v OpenID Connect infrastruktuře CESNETu. Tato změna vychází z nutnosti zbavit se závislosti na webové službě Perun. \par
 
 Druhým bodem je nutnost uložení dodatečných informací o autentizovaném uživateli v rámci systému Shongo. Zmíněná data jsou ve stávající implementaci získávána při každém požadavku na zobrazení uživatelských informací pomocí služby Perun. Jelikož nová implementace nebude závislá na webové službě Perun, musí se představené uživatelské informace ukládat do databáze již v rámci procesu autentizace uživatele. Díky odstranění závislosti autentizační a autorizační infrastruktury na webové službě Perun dojde k nemalé snížení složitost zmíněného systému. Implementaci uvedených změn popisuji v kapitole \hyperref[ShongoImpl]{mplementace autentizačního a autorizačníhomodulu pro systém Shongo}.
 
@@ -311,17 +312,17 @@ Prvním krokem byla instalace nezbytných knihoven \textbf{libjansson4} a \textb
 \par
 Pokud instalace uvedených knihoven proběhla v pořádku dále následovalo spuštění příkazu který zapnul samotný modul \texttt{a2enmod auth\_openidc}. Dále následovala konfigurace nainstalovaného modulu v konfiguračním souboru Apache serveru \texttt{/etc/apache2/sites-available/default-ssl}. Do zmíněného souboru byla přidána následující konfigurace: 
 
-\begin{footnotesize}
-\begin{center}
-\begin{tabular}{ |c|c| } 
- \hline
- LoadModule auth\_openidc\_module /usr/lib/apache2/modules/mod\_auth\_openidc.so & cell2  \\ 
- cell4 & cell5 \\ 
- cell7 & cell8 \\ 
- \hline
-\end{tabular}
-\end{center}
-\end{footnotesize}
+\begin{itemize}
+    \item \textbf{LoadModule auth\_openidc\_module /usr/lib/apache2\\ /modules/mod\_auth\_openidc.so}
+    \item \textbf{OIDCProviderMetadataURL https://login.cesnet.cz/oidc/.well-known/openid-configuration}
+    \item \textbf{OIDCProviderMetadataRefreshInterval 3600}
+    \item \textbf{OIDCClientID 'id clienta'}
+    \item \textbf{OIDCClientSecret}
+    \item \textbf{OIDCScope "openid email profile address phone organization locale zoneinfo eppns"}
+    \item \textbf{OIDCRedirectURI /oauth2callback}
+    \item \textbf{OIDCCryptoPassphrase randompassword}
+\end{itemize}
+
 \section{Implementace autentizačního a autorizačního systému pro systém Adobe Connect}
 \label{ACImpl}
 \section{Implementace autentizačního a autorizačního systému pro systém Shongo}
