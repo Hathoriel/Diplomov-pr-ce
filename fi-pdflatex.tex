@@ -100,8 +100,13 @@ Cílem této diplomové práce je navrhnout a implementovat novou autentizační
 
 Výsledkem mé práce je plně funkční autentizační a autorizační infrastruktura zprovozněná v produkčním prostředí webkonferenční platformy sdružení CESNET. Vytvořenou autentizační a autorizační infrastrukturu jsem navrhnul a implementoval na serveru shongo-auth.cesnet.cz pomocí technologie OpenID Connect. Implementovaná infrastruktura je integrována do Proxy IdP provozované sdružením CESNET tak, aby autentizovala a autorizovala uživatele, využívající služeb portálů meetings.cesnet.cz a connect.cesnet.cz. Nová implementace oproti původní rozšiřuje způsoby přihlášení o možnosti použít účty společností Google, Facebook a dalších mezinárodních akademických organizací integrovaných do federace identit eduGAIN. Další předností nové implementace je vynechání autorizačního procesu pomocí externí webové služby Perun\footnote{Perun, \url{www.perun-aai.org}}, která poskytovala základní údaje o autentizovaném uživateli. Nyní jsou údaje přihlášeného uživatele zprostředkovány v rámci autentizačního procesu díky technologii OpenID Connect. Novou implementací došlo tedy k významnému zjednodušení složitosti autentizační a autorizační infrastruktury. \par
 
-Text této diplomové práce je členěn následujícím způsobem. První část se věnuje úvodu. Po úvodu následuje druhá kapitola, ve které popisuji návrh infrastruktury autorizačního a autentizačního systému. V třetí kapitole se věnuji použitým technologiím, které jsem využil v rámci implementace diplomové práce. V následující čtvrté kapitole se zabývám popisem implementace. Poslední pátá kapitola shrnuje výsledky mé práce v závěru.  
+Text této diplomové práce je členěn následujícím způsobem. První část se věnuje úvodu. Po úvodu následuje druhá kapitola, ve které popisuji návrh infrastruktury autorizačního a autentizačního systému. V třetí kapitole se věnuji použitým technologiím, které jsem využil v rámci implementace diplomové práce. V následující čtvrté kapitole se zabývám popisem implementace. Poslední pátá kapitola shrnuje výsledky mé práce v závěru. 
+
 \section{Slovník pojmů}
+
+\textbf{Claim} Kus informace, přiřazení nějaké entitě, většinou uživateli. \\ \par 
+\noindent
+\textbf{Scope} Indikuje které informace ve formě \textbf{claim} klient požaduje.
 
 \chapter{Návrh autorizační a autentizační infrastruktury}
 V této kapitole se budu věnovat návrhu autorizační a autentizační infrastruktury pro systémy Adobe Connect a Shongo. V následující sekci nejprve popisuji stávající stav autentizační a autorizační infrastruktury. Dále se v další sekci věnuji analýze požadavků na novou infrastrukturu. V poslední sekci této kapitoly se zabývám samotným návrhem nové autentizační a autorizační infrastruktury, který plyne z provedené analýzy stávajícího systému.    
@@ -368,7 +373,7 @@ Obdobně ochranu URL adres autentizačního serveru \texttt{shongo-auth.cesnet.c
 
 \section{Implementace autentizačního a autorizačního systému pro systém Adobe Connect}
 \label{ACImpl}
-V této sekci se zabývám popisem implementace, kterou bylo nutné provézt pro integraci stávající autentizační a autorizační infrastruktury Adobe Connect s OpenID Connect Proxy IdP provozované sdružením CESNET. Prvním krokem bylo zkopírování obsahu adresáře stávající implementace autorizační a autentizační infrastruktury Adobe Connect na serveru \texttt{shongo-auth.cesnet.cz} do adresáře \texttt{/app/oidc/}. Dále je důležité zmínit, že chráněná URL adresa definovaná v \hyperref[ac-location]{konfiguračním souboru} Apache je mapována na uvedený adresář \texttt{/app/oidc/}. V představeném adresáři jsem v rámci implementace prováděl následující popisované změny. \par
+V této sekci se zabývám popisem implementace, kterou bylo nutné provézt při integraci stávající autentizační a autorizační infrastruktury Adobe Connect s OpenID Connect Proxy IdP provozované sdružením CESNET. Prvním krokem bylo zkopírování obsahu adresáře stávající implementace autorizační a autentizační infrastruktury Adobe Connect na serveru \texttt{shongo-auth.cesnet.cz} do adresáře \texttt{/app/oidc/}. Dále je důležité zmínit, že chráněná URL adresa definovaná v \hyperref[ac-location]{konfiguračním souboru} Apache je mapována na uvedený adresář \texttt{/app/oidc/}. V představeném adresáři jsem v rámci implementace prováděl následující popisované změny. \par
 
 První změnou byla editace konfiguračního souboru \texttt{config/connect.ini}. Tento soubor zajišťuje mapování získaných \textbf{Claims} z proměnných prostředí PHP serveru po autentizaci. Následují výňatek konfiguračního souboru popisuje nové mapování proměnných prostředí PHP serveru do proměnných autentizačního algoritmu. 
 
@@ -380,12 +385,20 @@ První změnou byla editace konfiguračního souboru \texttt{config/connect.ini}
 5 sn_field = OIDC_CLAIM_family_name
 \end{lstlisting}
 
-První řádek výňatku mapuje unikátní identifikátor einfra id, druhý řádek seznam obsahující \textbf{eduPersonPrincipalName}, další řádek emailovou adresu, předposlední řádek jméno a poslední řádek příjmení uživatele.   
+První řádek výňatku mapuje unikátní identifikátor einfra id, druhý řádek seznam obsahující \textbf{eduPersonPrincipalName}, další řádek emailovou adresu, předposlední řádek jméno a poslední řádek příjmení uživatele.  \par 
+
+Další důležitá změna byla provedena v hlavním souboru celého autentizačního algoritmu \texttt{lib/AcLogin/Application.php}. Zde byla přidána metoda \texttt{\_getExistingUserIdByEppns}, která ze všech \textbf{eduPersonPrincipalName} přihlašovaného uživatele najde takový identifikátor uživatele, který již v interní databázi Adobe Connect existuje. Důvodem přidání představené metody je fakt, že získaný \textbf{Claim} obsahuje textový řetězec se všemi \textbf{eduPersonPrincipalName} uživatele. Pokud metoda \texttt{\_getExistingUserIdByEppns} nenajde uživatele v interní databázi Adobe Connect, vytvoří algoritmus záznam v databázi z prvního \textbf{eduPersonPrincipalName}. Dále již běh algoritmu pokračuje obdobně jako ve stávající implementaci. 
+
+
 
 \section{Implementace autentizačního a autorizačního systému pro systém Shongo}
-\subsection{Implementace na straně autentizačního a autorizačního serveru}
-\subsection{Implementace na straně systému Shongo}
 \label{ShongoImpl}
+V této sekci se zabývám popisem postupu implementace při integraci stávající autentizační a autorizační infrastruktury služby \texttt{meetings.cesnet.cz} do Proxy IdP provozované sdružením CESNET. V podkapitole \hyperref[ShongoImpl-authn]{4.3.1} se představuji implementaci na straně serveru \texttt{shongo-auth.cesnet.cz}. Kapitola \hyperref[ShongoImpl-authn]{4.3.2} pojednává o implementačních změnách na straně rezervačního systému Shongo, provozovaného na portálu \texttt{meetings.cesnet.cz}. 
+
+\subsection{Implementace na straně autentizačního a autorizačního serveru}
+\label{ShongoImpl-authn}
+\subsection{Implementace na straně systému Shongo}
+\label{ShongoImpl-web}
 \chapter{Závěr}
 \printbibliography[title={Literatura}]
 \end{document}
