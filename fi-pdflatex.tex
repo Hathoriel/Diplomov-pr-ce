@@ -307,21 +307,21 @@ Tento framework je použit ve stávající implementaci rezervačního systému 
 
 
 \chapter{Popis implementace}
-V této kapitole seznamuji s detailním postupem při implementaci a instalaci nové autentizační a autorizační infrastruktury využívající protokol OpenID Connect. V kapitole \hyperref[apacheConfig]{4.1} popisuji jakým způsobem probíhala instalace knihoven sloužících pro zprovoznění modulu OpenID Connect pro webový server Apache. V dalších kapitolách \hyperref[ACImpl]{4.2} a \hyperref[ShongoImpl]{4.3} se věnuji implementaci autentizační a autorizační infrastruktury systému Adobe Connect, respektive systému Shongo.   
+V této kapitole seznamuji s detailním postupem při implementaci a instalaci nové autentizační a autorizační infrastruktury využívající protokol OpenID Connect. V kapitole \hyperref[apacheConfig]{4.1} popisuji jakým způsobem probíhala instalace a konfigurace modulu OpenID Connect pro webový server Apache. V dalších kapitolách \hyperref[ACImpl]{4.2} a \hyperref[ShongoImpl]{4.3} se věnuji implementaci autentizační a autorizační infrastruktury systému Adobe Connect, respektive systému Shongo.   
 
 
 \section{Instalace a konfigurace Apache modulu pro OpenID Connect}
 \label{apacheConfig}
 \subsection{Instalace knihoven modulu mod\_auth\_openidc}
-Příkazy popisované během instalace Apache modulu pro OpenID Connect byly v rámci diplomové práce prováděny na serveru \texttt{shongo-auth.cesnet.cz} s operačním systémem Debian GNU/Linux 7 (wheezy). 
+Instalace knihoven nutných pro zprovoznění Apache modulu OpenID Connect byly v rámci diplomové práce prováděny na serveru \texttt{shongo-auth.cesnet.cz} s operačním systémem Debian GNU/Linux 7 (wheezy). 
 \par 
 Autentizační a autorizační modul, který slouží pro zprovoznění serveru jako tzv. \textbf{OpenID Connect Relying Party} se nazývá \textbf{mod\_auth\_openidc\footnote{OpenID Connect Relying Party pro Apache server \url{https://github.com/zmartzone/mod\_auth\_openidc}}}. Důležitým předpokladem pro instalaci představeného modulu je již dříve nainstalovaný server Apache. 
 \par 
-Prvním krokem byla instalace nezbytných knihoven \textbf{libjansson4} a \textbf{libhiredis0.13}, \textbf{libcjose0\_0.5} a \textbf{libapache2-mod-auth-openidc\_2.3.3-1}.
+Prvním krokem byla instalace nezbytných knihoven \textbf{libjansson4} a \textbf{libhiredis0.13}, \textbf{libcjose0\_0.5} a \textbf{libapache2-mod-auth-openidc\_2.3.3-1}. Po instalaci uvedených knihoven následovala registrace klienta do Proxy IdP infrastruktury. 
 
 \subsection{Registrace klienta do Proxy IdP infrastruktury}
 
-Pokud instalace uvedených knihoven proběhla úspěšně následovala registrace klienta \texttt{shongo-auth.cesnet.cz} do Proxy IdP infrastruktury sdružení CESNET. Zmíněná registrace probíhala ve webové aplikaci MITREid Connect na adrese \url{https://login.cesnet.cz/oidc/}. Po přihlášení do webové aplikace bylo v uživatelském rozhraní v levém menu v kolonce \textbf{Developer} vybráno \textbf{Self-service client registration}. Uvedená akce přesměrovala prohlížeč na stránku s tlačítkem \textbf{New Client} sloužící pro registraci nového klienta. Po kliknutí na zmíněné tlačítko aplikace přesměrovala prohlížeč na registrační formulář s konfigurací nového klienta. V záložce \textbf{Main} byla vyplněna kolonka \textbf{Redirect URI (s)} adresou \texttt{https://shongo-auth.cesnet.cz/oauth2callback} představující URL adresu pro přesměrování po autentizaci koncového uživatele. Dále byly vyplněny údaje v záložce \textbf{Access} v kolonce \textbf{Scope}. Zmíněné \textbf{Scopes} indikují údaje o uživateli, ke kterým bude chtít registrovaný klient po autentizaci přistupovat. V rámci registrace klienta byly vybrány následující \textbf{Scopes}.
+Pokud instalace uvedených knihoven proběhla úspěšně následovala registrace klienta \texttt{shongo-auth.cesnet.cz} do Proxy IdP infrastruktury sdružení CESNET. Zmíněná registrace probíhala ve webové aplikaci MITREid Connect na adrese \url{https://login.cesnet.cz/oidc/}. Po přihlášení do webové aplikace bylo v uživatelském rozhraní v levém menu v kolonce \textbf{Developer} vybráno \textbf{Self-service client registration}. Uvedená akce přesměrovala prohlížeč na stránku s tlačítkem \textbf{New Client} sloužící pro registraci nového klienta. Po kliknutí na zmíněné tlačítko aplikace přesměrovala prohlížeč na registrační formulář s konfigurací nového klienta. V záložce \textbf{Main} byla vyplněna kolonka \textbf{Redirect URI (s)} adresou \texttt{https://shongo-auth.cesnet.cz/oauth2callback}. Uvedená kolonka představuje URL adresu pro přesměrování po autentizaci koncového uživatele. Dále byly vyplněny údaje v záložce \textbf{Access} v kolonce \textbf{Scope}. Zmíněné \textbf{Scopes} indikují údaje o uživateli, ke kterým bude chtít registrovaný klient po autentizaci přistupovat. V rámci registrace klienta byly vybrány následující \textbf{Scopes}.
 \begin{itemize}
     \item \textbf{openid} představuje unikátní identifikátor uživatele v rámci Proxy IdP ifrastruktury, tzv. einfra id,
     \item \textbf{groupNames} obsahuje seznam skupin, kterých je uživatel členem,
@@ -338,20 +338,20 @@ Po uložení zmíněné konfigurace byly aplikací náhodně vygenerovány tyto 
 
 \subsection{Konfigurace nastavení Apache modulu mod\_auth\_openidc} 
 \label{sec:mod-conf}
-Předpokladem pro kompletní zprovoznění OpenID Connect modulu je spuštění příkazu \texttt{a2enmod auth\_openidc} který zapnul tento dříve nainstalovaný modul. Potom následovala konfigurace nainstalovaného modulu v souboru Apache serveru \texttt{/etc/apache2/sites-available/default-ssl}. Do zmíněného souboru byla přidána následující konfigurace.
+Předpokladem pro kompletní zprovoznění OpenID Connect modulu je spuštění příkazu \texttt{a2enmod auth\_openidc} který zapnul tento dříve nainstalovaný modul. Potom následovala nastavení nainstalovaného modulu v konfiguračním souboru Apache serveru \texttt{/etc/apache2/sites-available/default-ssl}. Do zmíněného souboru byla přidána následující konfigurace.
 
 \begin{itemize}
-    \item \textbf{LoadModule auth\_openidc\_module /usr/lib/apache2\\ /modules/mod\_auth\_openidc.so} značí načtení požadovaného modulu, 
+    \item \textbf{LoadModule auth\_openidc\_module /usr/lib/apache2\\ /modules/mod\_auth\_openidc.so} značí načtení požadovaného OpenID Connect modulu, 
     \item \textbf{OIDCProviderMetadataURL https://login.cesnet.cz/oidc/.well-known/openid-configuration} představuje adresu odkazu na konfiguraci poskytovatele OpenID Connect, 
     \item \textbf{OIDCProviderMetadataRefreshInterval 3600} nastavení intervalu pro obnovení metadat poskytovatele OpenID Connect, 
-    \item \textbf{OIDCClientID client\_id} nastavuje identifikaci klienta, která byla vygenerovaná v rámci registrace,
+    \item \textbf{OIDCClientID client\_id} nastavuje identifikaci klienta, tato hodnota byla vygenerovaná v rámci registrace,
     \item \textbf{OIDCClientSecret client\_secret} definuje sdílené tajemství mezi klientem a poskytovatelem OpenID Connect, také se použije hodnota, která byla dříve vygenerovaná při registraci,
-    \item \textbf{OIDCScope "openid email profile address phone organization eppns"} slouží pro nastavení \textbf{Scopes}, které jsou požadované od poskytovatele OpenID Connect,
+    \item \textbf{OIDCScope "openid email profile address phone organization eppns"} slouží pro nastavení \textbf{Scopes}, které jsou požadované od poskytovatele OpenID Connect, vyčet \textbf{Scopes} odpovídá zvoleným \textbf{Scopes} při registraci klienta do Proxy IdP infrastruktury,
     \item \textbf{OIDCRedirectURI /oauth2callback} značí adresu na kterou bude prohlížeč přesměrován po autentizaci, musí mít stejnou hodnotu jako zvolená hodnota při registraci klienta, 
     \item \textbf{OIDCCryptoPassphrase randompassword} představuje heslo pro šifrování cookie a cache dat. 
 \end{itemize}
 
-Po nastavení uvedené konfigurace, mohlo dojít ke stanovení URL adres, které pro přístup požadují OpenID Connect autentizaci. Zmíněnou ochranu adres pro Adobe Connect popisuje pomocí Apache direktiv \textbf{Location}, \textbf{AuthType} a \textbf{Require} následující výňatek z konfiguračního souboru Apache.
+Po nastavení uvedené konfigurace, mohlo dojít ke stanovení URL adres, které při přístupu požadují OpenID Connect autentizaci. Zmíněnou ochranu adres pro autentizační a autorizační infrastrukturu Adobe Connect popisuje pomocí Apache direktiv \textbf{Location}, \textbf{AuthType} a \textbf{Require} následující výňatek z konfiguračního souboru Apache.
 
 \begin{lstlisting}
           <Location /oidc-ac>
@@ -361,7 +361,7 @@ Po nastavení uvedené konfigurace, mohlo dojít ke stanovení URL adres, které
 \end{lstlisting}
 \label{ac-location}
 
-Obdobně ochranu URL adres autentizačního serveru \texttt{shongo-auth.cesnet.cz}, který se stará o autentizaci a autorizaci uživatelů přistupujících na server \texttt{meetings.cesnet.cz} zajišťuje následující úryvek. 
+Obdobně ochranu URL adres mapovaných na moduly, které se starají o autentizaci a autorizaci uživatelů přistupujících server \texttt{meetings.cesnet.cz} zajišťuje následující úryvek. 
 
 \begin{lstlisting}
           <Location /oidc-authn>
@@ -384,10 +384,9 @@ První změnou byla editace konfiguračního souboru \texttt{config/connect.ini}
 4 givenName_field = OIDC_CLAIM_given_name
 5 sn_field = OIDC_CLAIM_family_name
 \end{lstlisting}
-
 První řádek výňatku mapuje unikátní identifikátor einfra id, druhý řádek seznam obsahující \textbf{eduPersonPrincipalName}, další řádek emailovou adresu, předposlední řádek jméno a poslední řádek příjmení uživatele.  \par 
 
-Další důležitá změna byla provedena v hlavním souboru celého autentizačního algoritmu \texttt{lib/AcLogin/Application.php}. Zde byla přidána metoda \texttt{\_getExistingUserIdByEppns}, která ze všech \textbf{eduPersonPrincipalName} přihlašovaného uživatele najde takový identifikátor uživatele, který již v interní databázi Adobe Connect existuje. Důvodem přidání představené metody je fakt, že získaný \textbf{Claim} obsahuje textový řetězec se všemi \textbf{eduPersonPrincipalName} uživatele. Pokud metoda \texttt{\_getExistingUserIdByEppns} nenajde uživatele v interní databázi Adobe Connect, vytvoří algoritmus záznam v databázi z prvního \textbf{eduPersonPrincipalName}. Dále již běh algoritmu pokračuje obdobně jako ve stávající implementaci. 
+Další důležitá změna byla provedena v hlavním souboru celého autentizačního algoritmu \texttt{lib/AcLogin/Application.php}. Zde byla přidána metoda \texttt{\_getExistingUserIdByEppns}, která ze všech \textbf{eduPersonPrincipalName} přihlašovaného uživatele najde takový identifikátor uživatele, který již v interní databázi Adobe Connect existuje. Důvodem přidání představené metody je fakt, že získaný \textbf{ OIDC\_CLAIM\_eppns}  obsahuje textový řetězec se všemi \textbf{eduPersonPrincipalName} uživatele. Pokud metoda \texttt{\_getExistingUserIdByEppns} nenajde uživatele v interní databázi Adobe Connect, vytvoří algoritmus záznam v databázi z prvního \textbf{eduPersonPrincipalName}. Dále již běh algoritmu pokračuje obdobně jako ve stávající implementaci. 
 
 
 
