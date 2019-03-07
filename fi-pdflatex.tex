@@ -326,13 +326,15 @@ Prvním krokem byla instalace nezbytných knihoven \textbf{libjansson4} a \textb
 Pokud instalace uvedených knihoven proběhla úspěšně následovala registrace klienta \texttt{shongo-auth.cesnet.cz} do Proxy IdP infrastruktury sdružení CESNET. Zmíněná registrace probíhala ve webové aplikaci MITREid Connect na adrese \url{https://login.cesnet.cz/oidc/}. Po přihlášení do webové aplikace bylo v uživatelském rozhraní v levém menu v kolonce \textbf{Developer} vybráno \textbf{Self-service client registration}. Uvedená akce přesměrovala prohlížeč na stránku s tlačítkem \textbf{New Client} sloužící pro registraci nového klienta. Po kliknutí na zmíněné tlačítko aplikace přesměrovala prohlížeč na registrační formulář s konfigurací nového klienta. V záložce \textbf{Main} byla vyplněna kolonka \textbf{Redirect URI (s)} adresou \texttt{https://shongo-auth.cesnet.cz/oauth2callback}. Uvedená kolonka představuje URL adresu pro přesměrování po autentizaci koncového uživatele. Dále byly vyplněny údaje v záložce \textbf{Access} v kolonce \textbf{Scope}. Zmíněné \textbf{Scopes} indikují údaje o uživateli, ke kterým bude chtít registrovaný klient po autentizaci přistupovat. V rámci registrace klienta byly vybrány následující \textbf{Scopes}.
 \begin{itemize}
     \item \textbf{openid} představuje unikátní identifikátor uživatele v rámci Proxy IdP ifrastruktury, tzv. einfra id,
-    \item \textbf{groupNames} obsahuje seznam skupin, kterých je uživatel členem,
+    \item \textbf{profile} jde o osobní profil uživatele požadující \textbf{Claimy} \textbf{name}, \textbf{given\_name}, \textbf{middle\_name}, \textbf{family\_name}, \textbf{preferred\_username}, \textbf{zoneinfo} a \textbf{locale},
+    \item \textbf{email} označuje emailovou adresu uživatele,
     \item \textbf{address} je poštovní adresa uživatele,
     \item \textbf{phone} odkazuje na telefonní číslo uživatele,
-    \item \textbf{profile} jde o osobní profil uživatele požadující \textbf{Claimy} \textbf{name}, \textbf{given\_name}, \textbf{middle\_name}, \textbf{family\_name}, \textbf{preferred\_username}, \textbf{zoneinfo} a \textbf{locale},
+    
     \item \textbf{organization} představuje domovskou organizaci ke které uživatel patří,
     \item \textbf{eppns} značí seznam všech \textbf{eduPersonPrincipalName} uživatele, jde o jednoznačné identifikátory v rámci federace, mající formát uživatelské\_jméno@doména,  
-    \item \textbf{email} označuje emailovou adresu uživatele.
+    \item \textbf{eduPersonEntitlement} obsahuje seznam skupin, kterých je uživatel členem a jsou na službu přiřazeny.
+    
 \end{itemize}
 Dále je důležité zmínit, že v kolonce \textbf{Grant Types} byl zvolen \textbf{authorization code}, který respektuje autentizační a autorizační architekturu registrovaného serveru \texttt{shongo-auth.cesnet.cz}.  \par
 
@@ -348,7 +350,7 @@ Předpokladem pro kompletní zprovoznění OpenID Connect modulu je spuštění 
     \item \textbf{OIDCProviderMetadataRefreshInterval 3600} nastavení intervalu pro obnovení metadat poskytovatele OpenID Connect, 
     \item \textbf{OIDCClientID client\_id} nastavuje identifikaci klienta, tato hodnota byla vygenerovaná v rámci registrace,
     \item \textbf{OIDCClientSecret client\_secret} definuje sdílené tajemství mezi klientem a poskytovatelem OpenID Connect, také se použije hodnota, která byla dříve vygenerovaná při registraci,
-    \item \textbf{OIDCScope "openid email profile address phone organization eppns"} slouží pro nastavení \textbf{Scopes}, které jsou požadované od poskytovatele OpenID Connect, vyčet \textbf{Scopes} odpovídá zvoleným \textbf{Scopes} při registraci klienta do Proxy IdP infrastruktury,
+    \item \textbf{OIDCScope "openid email profile address phone organization eppns eduPersonEntitlement"} slouží pro nastavení \textbf{Scopes}, které jsou požadované od poskytovatele OpenID Connect, vyčet \textbf{Scopes} odpovídá zvoleným \textbf{Scopes} při registraci klienta do Proxy IdP infrastruktury,
     \item \textbf{OIDCRedirectURI /oauth2callback} značí adresu na kterou bude prohlížeč přesměrován po autentizaci, musí mít stejnou hodnotu jako zvolená hodnota při registraci klienta, 
     \item \textbf{OIDCCryptoPassphrase randompassword} představuje heslo pro šifrování cookie a cache dat. 
 \end{itemize}
@@ -366,11 +368,18 @@ Po nastavení uvedené konfigurace, mohlo dojít ke stanovení URL adres, které
 Obdobně ochranu URL adres mapovaných na moduly, které se starají o autentizaci a autorizaci uživatelů přistupujících server \texttt{meetings.cesnet.cz} zajišťuje následující úryvek. 
 
 \begin{lstlisting}
-          <Location /oidc-authn>
+          <Location /oidc-authn/oic/authn/oidc>
+                  AuthType openid-connect
+                  Require valid-user
+          </Location>
+          
+          <Location /oidc-authn/oic/authorize-response>
                   AuthType openid-connect
                   Require valid-user
           </Location>
 \end{lstlisting}
+První představená URL adresa \texttt{/oidc-authn/oic/authn/oidc} je mapována na nově vytvořenou třídu \texttt{OIDCController}, která se stará o autentizaci. Po autentizaci druhá URL adresa \texttt{/oidc-authn/oic/authorize-response} zpřístupňuje získané \textbf{Claims} o autentizovaném uživateli k dalšímu zpracování.  
+
 \label{shongo-location}
 
 \section{Implementace autentizačního a autorizačního systému pro systém Adobe Connect}
@@ -398,19 +407,26 @@ V této kapitole se zabývám popisem postupu implementace při integraci stáva
 \label{ShongoImpl-authn}
 Výchozím krokem implementace bylo zkopírování celé autentizační a autorizační infrastruktury do adresáře \texttt{/app/shongo-authn/}, kde probíhala implementace. Přístup k adresáři přes webový server Apache je pomocí URL adresy \texttt{shongo-auth.cesnet.cz/oidc-authn} chráněn OpenID Connect modulem Apache, který byl nakonfigurován v kapitole \hyperref[shongo-location]{4.1.3}.  \par
 
-Jak již bylo uvedeno výše, další fází bylo vytvoření nového datového konektoru, který zpracuje data získaná po autentizaci v proměnné PHP prostředí \texttt{\$\_SERVER}. Z tohoto důvodu byl vytvořen soubor OIDC.php, který představuje zmíněný datový konektor. Představený konektor plně nahrazuje konektor \texttt{PerunWS.php}, který v předcházející implementaci získával informace o přihlášeném uživateli pomocí webové služby Perun. Nově vytvořený konektor tedy mapuje proměnné PHP prostředí v následujích indexech do objektu představujícího autentizovaného uživatele. 
+V další kroku byla vytvořena třída \texttt{OIDCController}, která kopíruje chování třídy \texttt{ShibbolethController}. Tedy jde o logiku, která uživatele přesměruje na rozcestník federace identit v infrastruktuře OpenID Connect CESNETu kde proběhne autentizace. K této změně vedla nutnost zachování jmenných konvencí, tak aby název odpovídal chování dotyčné třídy.  \par 
+
+Jak již bylo uvedeno výše, další fází bylo vytvoření nového datového konektoru, který zpracuje data získaná po autentizaci v proměnné PHP prostředí \texttt{\$\_SERVER}. Z tohoto důvodu byl vytvořen soubor OIDC.php, který představuje zmíněný datový konektor. Představený konektor plně nahrazuje konektor \texttt{PerunWS.php}, který v předcházející implementaci získával informace o přihlášeném uživateli pomocí webové služby Perun. Nově vytvořený konektor tedy mapuje proměnné PHP prostředí v následujích indexech do objektu představujícího autentizovaného uživatele \texttt{ShongoAuthn\textbackslash User\textbackslash User}. 
 
 \begin{itemize}
-    \item \textbf{OIDC\_CLAIM\_sub}
-    \item \textbf{OIDC\_CLAIM\_address}
-    \item \textbf{OIDC\_CLAIM\_given\_name}
-    \item \textbf{OIDC\_CLAIM\_family\_name}
-    \item \textbf{OIDC\_CLAIM\_zoneinfo}
-    \item \textbf{OIDC\_CLAIM\_locale}
-    \item \textbf{OIDC\_CLAIM\_email}
-    \item \textbf{OIDC\_CLAIM\_organization}
-    \item \textbf{OIDC\_CLAIM\_eppns}
+    \item \textbf{OIDC\_CLAIM\_sub} je unikátní identifikátor uživatele v infrastruktuře CESNETu, tzv. einf   ra id,
+    \item \textbf{OIDC\_CLAIM\_given\_name} představuje křestní jméno uživatele,
+    \item \textbf{OIDC\_CLAIM\_family\_name} obsahuje příjmení uživatele,
+    \item \textbf{OIDC\_CLAIM\_zoneinfo} značí časovou zónu preferovanou uživatelem, 
+    \item \textbf{OIDC\_CLAIM\_locale} identifikuje vybraný jazyk uživatele,
+    \item \textbf{OIDC\_CLAIM\_email} představuje emailovou adresu uživatele,
+    \item \textbf{OIDC\_CLAIM\_organization} definuje hlavní organizaci ke které uživatel patří
+    \item \textbf{OIDC\_CLAIM\_address} značí poštovní adresu uživatele,
+    \item \textbf{OIDC\_CLAIM\_eppns} jsou unikátní identifikátory v rámci organizací, tzv. eduPersonPrincipalName, 
+    \item \textbf{OIDC\_CLAIM\_eduPersonEntitlement} obsahuje seznam skupin, kterých je uživatel členem a jsou na službu přiřazeny. 
 \end{itemize}
+
+Dalším fází integrace s OpenID Connect bylo vytvoření validátoru OIDCUser.php, který kontroluje zda autentizovaný uživatel patří do skupiny einfra. Logika zmíněného validátoru spočívá v tom, že kontroluje zda je v seznamu skupin \textbf{OIDC\_CLAIM\_eduPersonEntitlement} do kterých uživatel patří přítomen řetězec \texttt{urn:geant:cesnet.cz:group:einfra:einfra\#perun.cesnet.cz}.  
+\par
+TODO napsat co bylo vynecháno, které služby se zrušily, o co se infrastruktura zjednodušila
 
 \subsection{Implementace na straně rezervačního systému Shongo}
 \label{ShongoImpl-web}
