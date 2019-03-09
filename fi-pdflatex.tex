@@ -78,6 +78,44 @@
 \usepackage{markdown} %% Lightweight markup
 \usepackage{listings} %% Source code highlighting
 \usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{bera}
+
+\colorlet{punct}{red!60!black}
+\definecolor{background}{HTML}{EEEEEE}
+\definecolor{delim}{RGB}{20,105,176}
+\colorlet{numb}{magenta!60!black}
+
+\lstdefinelanguage{json}{
+    basicstyle=\normalfont\ttfamily,
+    numbers=left,
+    numberstyle=\scriptsize,
+    stepnumber=1,
+    numbersep=2pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=lines,
+    backgroundcolor=\color{background},
+    literate=
+     *{0}{{{\color{numb}0}}}{1}
+      {1}{{{\color{numb}1}}}{1}
+      {2}{{{\color{numb}2}}}{1}
+      {3}{{{\color{numb}3}}}{1}
+      {4}{{{\color{numb}4}}}{1}
+      {5}{{{\color{numb}5}}}{1}
+      {6}{{{\color{numb}6}}}{1}
+      {7}{{{\color{numb}7}}}{1}
+      {8}{{{\color{numb}8}}}{1}
+      {9}{{{\color{numb}9}}}{1}
+      {:}{{{\color{punct}{:}}}}{1}
+      {,}{{{\color{punct}{,}}}}{1}
+      {\{}{{{\color{delim}{\{}}}}{1}
+      {\}}{{{\color{delim}{\}}}}}{1}
+      {[}{{{\color{delim}{[}}}}{1}
+      {]}{{{\color{delim}{]}}}}{1},
+}
+
+
 \lstset{
   basicstyle      = \ttfamily,%
   identifierstyle = \color{black},%
@@ -87,6 +125,7 @@
   stringstyle     = \color{teal},%
   commentstyle    = \itshape\color{magenta},
   language=XML,
+  inputencoding=utf8,
   morekeywords={Location}
 }
 \usepackage{floatrow} %% Putting captions above tables
@@ -98,7 +137,7 @@ Komunikace prostřednictvím videopřenosů a multimédií hraje v současném s
 
 Cílem této diplomové práce je navrhnout a implementovat novou autentizační a autorizační infrastrukturu pro současné video a webkonferenční prostředí, které spravuje sdružení CESNET\footnote{CESNET, \url{www.cesnet.cz}}. Vytvořená autentizační a autorizační infrastruktura je založena na technologii OpenID Connect\footnote{OpenID Connect, \url{www.openid.net/connect/}}  a je integrována do stávající Proxy IdP v infrastruktuře CESNETu. Na novou autentizační a autorizační infrastrukturu jsou navázány služby Shongo \cite{shongoapi} a Adobe Connect\footnote{Adobe Connect, \url{www.adobe.com/products/adobeconnect.html}}, které také provozuje sdružení CESNET. Zmíněné videokonferenční služby mohou využívat uživatelé z organizací, které patří do České akademické federace identit eduID.cz \footnote{eduID.cz, \url{www.eduid.cz}} a její mezinárodní obdoby eduGAIN \footnote{eduGAIN, \url{www.edugain.org}}. Služba Shongo zprovozněná na portálu meetings.cesnet.cz slouží uživatelům k rezervaci výpočetních zdrojů a virtuálních místností,v kterých se uskutečňují následné videokonferenční spojení. Komerční platforma Adobe connect, provozovaná na URL connect.cesnet.cz\footnote{Adobe Connect CESNET Webkonference, \url{www.connect.cesnet.cz}}, umožňuje autentizovaným uživatelům uskutečňovat videokonferenční a webkonferenční schůzky v předem rezervovaných virtuálních místnostech. Zmíněná platforma Adobe Connect navíc podporuje textovou diskuzi, sdílení obsahu dokumentů, kreslící tabule a pracovní plochy počítače v prostředí prohlížeče. 
 
-Výsledkem mé práce je plně funkční autentizační a autorizační infrastruktura zprovozněná v produkčním prostředí webkonferenční platformy sdružení CESNET. Vytvořenou autentizační a autorizační infrastrukturu jsem navrhnul a implementoval na serveru shongo-auth.cesnet.cz pomocí technologie OpenID Connect. Implementovaná infrastruktura je integrována do Proxy IdP provozované sdružením CESNET tak, aby autentizovala a autorizovala uživatele, využívající služeb portálů meetings.cesnet.cz a connect.cesnet.cz. Nová implementace oproti původní rozšiřuje způsoby přihlášení o možnosti použít účty společností Google, Facebook a dalších mezinárodních akademických organizací integrovaných do federace identit eduGAIN. Další předností nové implementace je vynechání autorizačního procesu pomocí externí webové služby Perun\footnote{Perun, \url{www.perun-aai.org}}, která poskytovala základní údaje o autentizovaném uživateli. Nyní jsou údaje přihlášeného uživatele zprostředkovány v rámci autentizačního procesu díky technologii OpenID Connect. Novou implementací došlo tedy k významnému zjednodušení složitosti autentizační a autorizační infrastruktury. \par
+Výsledkem mé práce je plně funkční autentizační a autorizační infrastruktura zprovozněná v produkčním prostředí webkonferenční platformy sdružení CESNET. Vytvořenou autentizační a autorizační infrastrukturu jsem navrhl a implementoval na serveru \texttt{shongo-auth.cesnet.cz} pomocí technologie OpenID Connect. Implementovaná infrastruktura je integrována do Proxy IdP provozované sdružením CESNET tak, aby autentizovala a autorizovala uživatele, využívající služeb portálů meetings.cesnet.cz a connect.cesnet.cz. Nová implementace oproti původní rozšiřuje způsoby přihlášení o možnosti použít účty společností Google, Facebook a dalších mezinárodních akademických organizací integrovaných do federace identit eduGAIN. Další předností nové implementace je vynechání autorizačního procesu pomocí externí webové služby Perun\footnote{Perun, \url{www.perun-aai.org}}, která poskytovala základní údaje o autentizovaném uživateli. Nyní jsou údaje přihlášeného uživatele zprostředkovány v rámci autentizačního procesu díky technologii OpenID Connect. Novou implementací došlo tedy k významnému zjednodušení složitosti autentizační a autorizační infrastruktury. \par
 
 Text této diplomové práce je členěn následujícím způsobem. První část se věnuje úvodu. Po úvodu následuje druhá kapitola, ve které popisuji návrh infrastruktury autorizačního a autentizačního systému. V třetí kapitole se věnuji použitým technologiím, které jsem využil v rámci implementace diplomové práce. V následující čtvrté kapitole se zabývám popisem implementace. Poslední pátá kapitola shrnuje výsledky mé práce v závěru. 
 
@@ -115,7 +154,7 @@ V této kapitole se budu věnovat návrhu autorizační a autentizační infrast
 \section{Popis stávající autentizační a autorizační infrastruktury}
 Stávající autentizace a autorizace webkonferenční infrastruktury Shongo a Adobe Connect je založena na systémech Shibboleth \footnote{Shibboleth, \url{www.shibboleth.net}} a Perun \footnote{Perun, \url{www.perun-aai.org}}. Shibboleth je open-source software, který slouží jako autentizační vrstva s jednotným přihlašováním mezi několika systémy. Perun je centralizovaná služba určená pro správu uživatelských údajů. V dosavadní webkonferenční infrastruktuře, byla služba Perun využívána k získání dodatečných informací o autentizovaném uživateli. \par
 
-Autentizační a autorizační infrastruktura využívající systémy Shibboleth a Perun je implementována na serveru \texttt{shongo-auth.cesnet.cz}. Uvedený server tedy odbavuje požadavky uživatelů na přihlášení do webkonferenčních systémů Shongo a Adobe Connect. Po úspěšné autentizaci je uživatel přesměrován na požadované portály. Abychom pochopily změny provedené ve stávající autentizační a autorizační infrastruktuře, je vhodné si detailně představit, jakým způsobem se zpracovávají požadavky na autentizaci uživatelů při přihlašování do zmíněných webkonferenčních systémů.  
+Autentizační a autorizační infrastruktura využívající systémy Shibboleth a Perun je implementována na serveru \texttt{shongo-auth.cesnet.cz}. Je důležité poznamenat, že tento server funguje jako OpenID Connect poskytovatel pro systémy Shongo a Adobe Connect a zároveň jako klient pro OpenID Connect Proxy IdP v infrastruktuře CESNETu. Uvedený server tedy odbavuje požadavky uživatelů na přihlášení do webkonferenčních systémů Shongo a Adobe Connect. Po úspěšné autentizaci je uživatel přesměrován na požadované portály. Abychom pochopily změny provedené ve stávající autentizační a autorizační infrastruktuře, je vhodné si detailně představit, jakým způsobem se zpracovávají požadavky na autentizaci uživatelů při přihlašování do zmíněných webkonferenčních systémů.  
 
 \subsection{Infrastruktura Adobe Connect}
 Jak už bylo zmíněno, webkonferenční platforma Adobe Connect využívá k autentizaci a
@@ -214,9 +253,11 @@ Obdobně jako v případě systému Adobu Connect, bude nová implementace autor
 V další fázi bude na serveru \texttt{shongo-auth.cesnet.cz} následovat implementace procesu, který zajistí propojení s autorizačním serverem OpenID Connect. Uvedená implementace zaručí mapování nově získaných uživatelských dat do stávajícího mechanizmu autentizace a autorizace uživatele. Ta bude realizována pomocí nově vytvořeného datového konektoru OIDC.
 \par
 
-Dalším krokem je adaptace systému Shongo na provedené změny v rámci implementace na straně serveru \texttt{shongo-auth.cesnet.cz}. Tuto adaptaci představují dva klíčové body. Prvním je nutnost změny v databázovém schématu týkající se tabulek v kterých si systém Shongo drží identifikátory svých uživatelů. Jedná se o zvětšení velikosti sloupců držící uživatelské identifikátory, jejichž velikost není v rámci stávající implementace dostačující. Příčinou této změny je nahrazení identifikátoru uživatele \textbf{perun\_id} za \textbf{einfra id}, jehož délka by překračovala stávající velikost sloupce. Zmíněné identifikátory jednoznačně identifikují uživatele v rámci služby Perun, respektive v OpenID Connect infrastruktuře CESNETu. Tato změna vychází z nutnosti zbavit se závislosti na webové službě Perun. \par
+Dalším krokem je adaptace systému Shongo na provedené změny v rámci implementace na straně serveru \texttt{shongo-auth.cesnet.cz}. Tuto adaptaci představují tři klíčové body. Prvním je nutnost změny v databázovém schématu týkající se tabulek v kterých si systém Shongo drží identifikátory svých uživatelů. Jedná se o zvětšení velikosti sloupců držící uživatelské identifikátory, jejichž velikost není v rámci stávající implementace dostačující. Příčinou této změny je nahrazení identifikátoru uživatele \textbf{perun\_id} za \textbf{einfra id}, jehož délka by překračovala stávající velikost sloupce. Zmíněné identifikátory jednoznačně identifikují uživatele v rámci služby Perun, respektive v OpenID Connect infrastruktuře CESNETu. Tato změna vychází z nutnosti zbavit se závislosti na webové službě Perun. \par
 
-Druhým bodem je nutnost uložení dodatečných informací o autentizovaném uživateli v rámci systému Shongo. Zmíněná data jsou ve stávající implementaci získávána při každém požadavku na zobrazení uživatelských informací pomocí služby Perun. Jelikož nová implementace nebude závislá na webové službě Perun, musí se představené uživatelské informace ukládat do databáze již v rámci procesu autentizace uživatele. Díky odstranění závislosti autentizační a autorizační infrastruktury na webové službě Perun dojde k nemalé snížení složitost zmíněného systému. Implementaci uvedených změn popisuji v kapitole \hyperref[ShongoImpl]{mplementace autentizačního a autorizačníhomodulu pro systém Shongo}.
+Druhým bodem je nutnost uložení dodatečných informací o autentizovaném uživateli v rámci systému Shongo. Zmíněná data jsou ve stávající implementaci získávána při každém požadavku na zobrazení uživatelských informací pomocí služby Perun. Jelikož nová implementace nebude závislá na webové službě Perun, musí se představené uživatelské informace ukládat do databáze již v rámci procesu autentizace uživatele. Díky odstranění závislosti autentizační a autorizační infrastruktury na webové službě Perun dojde k nemalé snížení složitost zmíněného systému. Implementaci uvedených změn popisuji v kapitole \hyperref[ShongoImpl]{mplementace autentizačního a autorizačníhomodulu pro systém Shongo}. \par 
+
+Třetím bodem je změna token a user info endpountů TODO.
 
 \chapter{Použité technologie}
 V této kapitole popisuji technologie, které jsem použil při implementaci mé diplomové práce. Popis doplňují informace o tom, v které konkrétní části implementace jsem danou technologii použil.
@@ -389,7 +430,14 @@ V této sekci se zabývám popisem implementace, kterou bylo nutné provézt př
 
 První změnou byla editace konfiguračního souboru \texttt{config/connect.ini}. Tento soubor zajišťuje mapování získaných \textbf{Claims} z proměnných prostředí PHP serveru po autentizaci. Následují výňatek konfiguračního souboru popisuje nové mapování proměnných prostředí PHP serveru do proměnných autentizačního algoritmu. 
 
-\begin{lstlisting}
+\begin{lstlisting}[
+   basicstyle=\ttfamily\small,
+    columns=fullflexible,
+    commentstyle=\color{gray}\ttfamily,
+    morekeywords={},
+    otherkeywords={=,:},
+    keywordstyle={\color{red}\bfseries}
+]
 1 uid_field = OIDC_CLAIM_sub
 2 eppns_field = OIDC_CLAIM_eppns
 3 mail_field = OIDC_CLAIM_email
@@ -406,7 +454,7 @@ V této kapitole se zabývám popisem postupu implementace při integraci stáva
 
 \subsection{Implementace na straně autentizačního a autorizačního serveru}
 \label{ShongoImpl-authn}
-Výchozím krokem implementace bylo zkopírování celé autentizační a autorizační infrastruktury do adresáře \texttt{/app/shongo-authn/}, kde probíhala implementace. Přístup k adresáři přes webový server Apache je pomocí URL adresy \texttt{shongo-auth.cesnet.cz/oidc-authn} chráněn OpenID Connect modulem Apache, který byl nakonfigurován v kapitole \hyperref[shongo-location]{4.1.3}.  \par
+Zde se věnuji implementaci algoritmu, který zajištuje autentizaci a autorizaci klienta \texttt{shongo-auth.cesnet.cz} vůči autorizačnímu serveru OpenID Connect v infrastruktuře CESNETu. Výchozím krokem implementace bylo zkopírování celé autentizační a autorizační infrastruktury do adresáře \texttt{/app/shongo-authn/}, kde probíhala implementace. Přístup k adresáři přes webový server Apache je pomocí URL adresy \texttt{shongo-auth.cesnet.cz/oidc-authn}. Uvedená URL adresa je chráněna OpenID Connect modulem Apache, který byl nakonfigurován v kapitole \hyperref[shongo-location]{4.1.3}.  \par
 
 V další kroku byla vytvořena třída \texttt{OIDCController}, která kopíruje chování třídy \texttt{ShibbolethController}. Tedy jde o logiku, která uživatele přesměruje na rozcestník federace identit v infrastruktuře OpenID Connect CESNETu kde proběhne autentizace. K této změně vedla nutnost zachování jmenných konvencí, tak aby název odpovídal chování dotyčné třídy.  \par 
 
@@ -431,10 +479,108 @@ Dalším fází integrace s OpenID Connect bylo vytvoření validátoru \texttt{
 
 V rámci implementace nové autentizační a autorizační infrastruktury na straně serveru \texttt{shongo-auth.cesnet.cz} byly odstraněny třídy zajišťující autentizaci prostřednictvím systému Shibboleth. Dále byla odstraněna logika, která zajišťuje získání dodatečných informací o uživateli pomocí webové služby Perun. Díky provedené implementaci tedy došlo k odstranění závislosti na externím systému a značnému zjednodušení infrastruktury.
 
+\subsection{Modifikace databáze rezervačního systému Shongo}
+V následujících odstavcích se zabývám popisem modifikací databáze, kterou rezervační systém využívá pro svůj provoz.
+\par
+
+Jelikož autorizační server OpenID Connect neposkytuje uživatelský identifikátor \textbf{perun\_id} v \textbf{Claims} a systém Shongo s tímto identifikátorem pracuje, byla nutná náhrada tohoto identifikátoru za \textbf{einfra id}. Zmíněné náhradě identifikátorů předcházela modifikace databázového schématu, protože nový identifikátor \textbf{einfra id} by překračoval maximální povolenou délku sloupce vyhrazenou pro \textbf{perun\_id}. Uvedený sloupec s uživatelským identifikátorem se používal v tabulkách \textbf{person}, \textbf{user\_settings}, \textbf{resource}, \textbf{acl\_identity} a \textbf{abstract\_reservation\_request}. Jelikož je databázové schéma definované pomocí technologie Hibernate, došlo ke změně délky sloupce jak na straně databáze, tak na straně třídy definující vlastnosti používané tabulky. 
+\par  
+Na straně zdrojového kódu je v souboru \texttt{cz/cesnet/shongo/controller/api/Controller.java} délka sloupce definovaná v proměnné \texttt{USER\_ID\_COLUMN\_LENGTH}. Ta je typu VARCHAR a byla změněna z délky 32 na 100. Dále byla provedena změna délky sloupce v databázových tabulkách pomocí následujícího SQL příkazu.
+
+\begin{lstlisting}[
+           language=SQL,
+           showspaces=false,
+           basicstyle=\ttfamily,
+           numbers=left,
+           commentstyle=\color{gray}
+        ]
+ALTER TABLE {nazev_tabulky}  
+ALTER COLUMN {nazev_sloupce}
+TYPE VARCHAR (100);
+\end{lstlisting}
+
+Další fází modifikace stávající databáze bylo již samotné nahrazení identifikátoru \textbf{perun\_id} za \textbf{einfra id} v tabulkách \textbf{person}, \textbf{user\_settings}, \textbf{resource}, \textbf{acl\_identity} a \textbf{abstract\_reservation\_request}. V rámci zmíněné modifikace byly doplněny i dodatečné údaje o uživateli v držené tabulkách \textbf{person} a \textbf{user\_settings}. Jde o údaje o uživatelově jménu, emailové adrese, organizaci, preferovaném jazyku a časové zóně, které byly dříve získávány pomocí webové služby Perun. Tato služba se v nové implementaci již nepoužívá a proto musely být představené údaje pro všechny uživatele v systému Shongo uloženy do databáze. Výhodou je, že tabulky obsahují požadované sloupce, protože se s zmíněnými uživatelskými údaji již pracovalo při správě anonymních uživatelů. 
+\par
+
+Algoritmus, který popisované modifikace provedl jsem implementoval v jazyce Java a obsahuje následující kroky pro každou z tabulek vyžadující změnu. Počáteční fází bylo získání všech uživatelských identifikátorů \textbf{perun\_id} z dotyčné tabulky. V dalším kroku byl pro každý identifikátor vytvořen GET požadavek na rozhraní webové služby Perun, které je přítomno na URL adrese \texttt{https://shongo-auth.cesnet.cz/perun/users/\{perun\_id\}}. Uvedený dotaz na API služby Perun vrátí požadované informace o uživateli ve formátu JSON !!!vypsat TODO struktura JSONu, které jsou uloženy do objektu představujícího uživatele. 
+
+\begin{lstlisting}[language=json,firstnumber=1]
+{
+    "id": {id},
+    "first_name": "{first_name}",
+    "last_name": "{last_name}",
+    "principal_names": [
+        "{name@mail.cz}",
+    ],
+    "language": "{language}",
+    "organization": "{organization}",
+    "phone": "{phone}",
+    "mail": "{name@mail.cz}",
+    "display_name": "{display_name}",
+    "sources": [
+        {
+            "id": {id},
+            "name": "{name}",
+            "loa": {loa},
+            "login": "{login}"
+        }
+    ],
+    "member_id": {member_id},
+    "member_status": "{member_status}",
+    "_links": {
+        "self": {
+            "href": "{href}"
+        }
+    }
+}
+\end{lstlisting}
+
+
+
+V závěrečné fázi je pro každého takto vytvořeného objektu uživatele v aktuálně zpracovávané tabulce nahrazeno \textbf{perun\_id} za \textbf{einfra id}. Jak již bylo zmíněno, speciálním případem jsou tabulky \textbf{person} a \textbf{user\_settings}, kde došlo navíc k vložení chybějících uživatelských údajů.
+Zmíněnou modifikaci tabulky \textbf{person} pro každého uživatele ilustruje následující SQL dotaz.
+
+TODO udelat visual paradigm tabulku
+\begin{lstlisting}[
+           language=SQL,
+           showspaces=false,
+           basicstyle=\ttfamily,
+           numbers=left,
+           commentstyle=\color{gray}
+        ]
+UPDATE person SET 
+user_id = {einfra_id},
+email = {email},
+name = {name},
+organization = {organization},
+WHERE id = {id};
+\end{lstlisting}
+
+Obdobně při modifikaci tabulky \textbf{user\_settings} byl použit následující SQL dotaz. 
+
+\begin{lstlisting}[
+           language=SQL,
+           showspaces=false,
+           basicstyle=\ttfamily,
+           numbers=left,
+           commentstyle=\color{gray}
+        ]
+UPDATE user_settings SET 
+user_id = {einfra_id},
+home_time_zone = {time_zone},
+current_time_zone = {current_time_zone},
+locale = {locale},
+WHERE id = {id};
+\end{lstlisting}
+
+TODO udelat visual paradigm tabulku
+Je důležité poznamenat, že při zpracování tabulky \textbf{acl\_identity} byl postup odlišný. Uvedená tabulka má sloupce \textbf{id}, \textbf{principal\_id} a \textbf{type} ve kterých si drží své záznamy. Údaj ve sloupci \textbf{type} může nabývat hodnoty \textbf{USER} nebo \textbf{GROUP}. Jestliže nabývá hodnoty \textbf{USER}, potom je ve sloupci \textbf{principal\_id} obsažen identifikátor uživatele \textbf{perun\_id}. Pokud sloupec \textbf{type} obsahuje hodnotu \textbf{GROUP}, potom se ve sloupci \textbf{principal\_id} nachází identifikátor skupiny. Tuto informaci je důležité zohlednit, při nahrazení 
+
+
 \subsection{Implementace na straně rezervačního systému Shongo}
 \label{ShongoImpl-web}
 V této sekci se věnuji tématu, jakým způsobem musel být rezervační systém Shongo nasazený na adrese \texttt{meetings.cesnet.cz} adaptován na provedené změny v rámci implementace nové autentizační a autorizační infrastruktury. 
-
+\par
 Token endpoint/userinfo endpoint
 
 \chapter{Závěr}
