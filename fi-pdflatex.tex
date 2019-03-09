@@ -103,7 +103,8 @@ Výsledkem mé práce je plně funkční autentizační a autorizační infrastr
 Text této diplomové práce je členěn následujícím způsobem. První část se věnuje úvodu. Po úvodu následuje druhá kapitola, ve které popisuji návrh infrastruktury autorizačního a autentizačního systému. V třetí kapitole se věnuji použitým technologiím, které jsem využil v rámci implementace diplomové práce. V následující čtvrté kapitole se zabývám popisem implementace. Poslední pátá kapitola shrnuje výsledky mé práce v závěru. 
 
 \section{Slovník pojmů}
-
+\textbf{Dotaz Miloši:} Mám tuto kapitolu sem dávat nebo ne? Viděl jsem ji u Opicaka v DP. \\ 
+\par
 \textbf{Claim} Kus informace, přiřazení nějaké entitě, většinou uživateli. \\ \par 
 \noindent
 \textbf{Scope} Indikuje které informace ve formě \textbf{claim} klient požaduje.
@@ -365,7 +366,7 @@ Po nastavení uvedené konfigurace, mohlo dojít ke stanovení URL adres, které
 \end{lstlisting}
 \label{ac-location}
 
-Obdobně ochranu URL adres mapovaných na moduly, které se starají o autentizaci a autorizaci uživatelů přistupujících server \texttt{meetings.cesnet.cz} zajišťuje následující úryvek. 
+Obdobně ochranu URL adres mapovaných na moduly, které se starají o autentizaci a autorizaci uživatelů přistupujících na server \texttt{meetings.cesnet.cz} zajišťuje následující úryvek. 
 
 \begin{lstlisting}
           <Location /oidc-authn/oic/authn/oidc>
@@ -424,12 +425,18 @@ Jak již bylo uvedeno výše, další fází bylo vytvoření nového datového 
     \item \textbf{OIDC\_CLAIM\_eduPersonEntitlement} obsahuje seznam skupin, kterých je uživatel členem a jsou na službu přiřazeny. 
 \end{itemize}
 
-Dalším fází integrace s OpenID Connect bylo vytvoření validátoru OIDCUser.php, který kontroluje zda autentizovaný uživatel patří do skupiny einfra. Logika zmíněného validátoru spočívá v tom, že kontroluje zda je v seznamu skupin \textbf{OIDC\_CLAIM\_eduPersonEntitlement} do kterých uživatel patří přítomen řetězec \texttt{urn:geant:cesnet.cz:group:einfra:einfra\#perun.cesnet.cz}.  
+Dalším fází integrace s OpenID Connect bylo vytvoření validátoru \texttt{OIDCUser.php}, který kontroluje zda autentizovaný uživatel patří do skupiny einfra.  Logika zmíněného validátoru spočívá v tom, že kontroluje zda je v seznamu skupin \textbf{OIDC\_CLAIM\_eduPersonEntitlement} do kterých uživatel patří přítomen řetězec \texttt{urn:geant:cesnet.cz:group:einfra:einfra\#perun.cesnet.cz}. Pokud uživatel do požadované skupiny, běh algoritmu pokračuje stejným způsobem jako v stávající implementaci. Pokud se uživatel do skupiny nepatří, je přesměrován na stránku infrastruktury CESNET s registrací.   
+
 \par
-TODO napsat co bylo vynecháno, které služby se zrušily, o co se infrastruktura zjednodušila
+
+V rámci implementace nové autentizační a autorizační infrastruktury na straně serveru \texttt{shongo-auth.cesnet.cz} byly odstraněny třídy zajišťující autentizaci prostřednictvím systému Shibboleth. Dále byla odstraněna logika, která zajišťuje získání dodatečných informací o uživateli pomocí webové služby Perun. Díky provedené implementaci tedy došlo k odstranění závislosti na externím systému a značnému zjednodušení infrastruktury.
 
 \subsection{Implementace na straně rezervačního systému Shongo}
 \label{ShongoImpl-web}
+V této sekci se věnuji tématu, jakým způsobem musel být rezervační systém Shongo nasazený na adrese \texttt{meetings.cesnet.cz} adaptován na provedené změny v rámci implementace nové autentizační a autorizační infrastruktury. 
+
+Token endpoint/userinfo endpoint
+
 \chapter{Závěr}
 \printbibliography[title={Literatura}]
 \end{document}
