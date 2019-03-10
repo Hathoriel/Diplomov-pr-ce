@@ -87,11 +87,7 @@
 \colorlet{numb}{magenta!60!black}
 
 \lstdefinelanguage{json}{
-    basicstyle=\normalfont\ttfamily,
-    numbers=left,
-    numberstyle=\scriptsize,
-    stepnumber=1,
-    numbersep=2pt,
+    basicstyle=\footnotesize\ttfamily,
     showstringspaces=false,
     breaklines=true,
     frame=lines,
@@ -502,8 +498,7 @@ TYPE VARCHAR (100);
 Další fází modifikace stávající databáze bylo již samotné nahrazení identifikátoru \textbf{perun\_id} za \textbf{einfra id} v tabulkách \textbf{person}, \textbf{user\_settings}, \textbf{resource}, \textbf{acl\_identity} a \textbf{abstract\_reservation\_request}. V rámci zmíněné modifikace byly doplněny i dodatečné údaje o uživateli v držené tabulkách \textbf{person} a \textbf{user\_settings}. Jde o údaje o uživatelově jménu, emailové adrese, organizaci, preferovaném jazyku a časové zóně, které byly dříve získávány pomocí webové služby Perun. Tato služba se v nové implementaci již nepoužívá a proto musely být představené údaje pro všechny uživatele v systému Shongo uloženy do databáze. Výhodou je, že tabulky obsahují požadované sloupce, protože se s zmíněnými uživatelskými údaji již pracovalo při správě anonymních uživatelů. 
 \par
 
-Algoritmus, který popisované modifikace provedl jsem implementoval v jazyce Java a obsahuje následující kroky pro každou z tabulek vyžadující změnu. Počáteční fází bylo získání všech uživatelských identifikátorů \textbf{perun\_id} z dotyčné tabulky. V dalším kroku byl pro každý identifikátor vytvořen GET požadavek na rozhraní webové služby Perun, které je přítomno na URL adrese \texttt{https://shongo-auth.cesnet.cz/perun/users/\{perun\_id\}}. Uvedený dotaz na API služby Perun vrátí požadované informace o uživateli ve formátu JSON !!!vypsat TODO struktura JSONu, které jsou uloženy do objektu představujícího uživatele. 
-
+Algoritmus, který popisované modifikace provedl jsem implementoval v jazyce Java a obsahuje následující kroky pro každou z tabulek vyžadující změnu. Počáteční fází bylo získání všech uživatelských identifikátorů \textbf{perun\_id} z dotyčné tabulky. V dalším kroku byl pro každý identifikátor vytvořen GET požadavek na rozhraní webové služby Perun, které je přítomno na URL adrese \texttt{https://shongo-auth.cesnet.cz/perun/users/\{perun\_id\}}. Uvedený dotaz na API služby Perun vrátí požadované informace o uživateli ve formátu JSON s následující strukturou.
 \begin{lstlisting}[language=json,firstnumber=1]
 {
     "id": {id},
@@ -535,8 +530,11 @@ Algoritmus, který popisované modifikace provedl jsem implementoval v jazyce Ja
 }
 \end{lstlisting}
 
+Význam jednotlivých atributů v odpovědi je popsán v příloze \hyperref[table:perunws:user]{A.1}.
 
 
+
+Zmíněné informace o uživateli jsou uloženy do objektu představujícího uživatele. 
 V závěrečné fázi je pro každého takto vytvořeného objektu uživatele v aktuálně zpracovávané tabulce nahrazeno \textbf{perun\_id} za \textbf{einfra id}. Jak již bylo zmíněno, speciálním případem jsou tabulky \textbf{person} a \textbf{user\_settings}, kde došlo navíc k vložení chybějících uživatelských údajů.
 Zmíněnou modifikaci tabulky \textbf{person} pro každého uživatele ilustruje následující SQL dotaz.
 
@@ -585,4 +583,35 @@ Token endpoint/userinfo endpoint
 
 \chapter{Závěr}
 \printbibliography[title={Literatura}]
+
+\appendix %% Start the appendices.
+\chapter{Sémantika odpovědí webové služby Perun}
+\section{Získání uživatele}
+
+\label{table:perunws:user}
+\begin{table}[h]
+\begin{tabular}{|l|l|}
+\hline
+\texttt{id (int)}                   & identifikátor perun id uživatele  \\ \hline
+\texttt{first\_name (String)}       & křestní jméno uživatele \\ \hline
+\texttt{last\_name (String)}        & příjmení uživatele \\ \hline
+\texttt{principal\_names (Array)}   & \parbox[t]{6cm}{pole obsahující všechny eduPersonPrincipalName uživatele} \\ \hline
+\texttt{language (String)}          & preferovaný jazyk uživatele \\ \hline
+\texttt{organization (String)}      & výchozí organizace uživatele \\ \hline
+\texttt{phone (String)}             & telefonní číslo uživatele \\ \hline
+\texttt{mail (String)}              & emailová adresa uživatele \\ \hline
+\texttt{display\_name (String)}     & úplné jméno uživatele \\ \hline
+\texttt{sources (Array)}            & pole skupin, v kterých je uživatel členem\\ \hline
+\texttt{sources.id (int)}           & identifikátor skupiny \\ \hline
+\texttt{sources.name (String)}      & název skupiny \\ \hline
+\texttt{sources.loa (int)}          & úroveň zabezpečení skupiny  \\ \hline
+\texttt{sources.login (String)}     & identifikátor uživatele v dané skupině \\ \hline
+\texttt{member\_id (int)}           & zeptat se Miloše \\ \hline
+\texttt{member\_status (String)}    & zeptat se Miloše \\ \hline
+\texttt{\_links.self.href (String)} & \parbox[t]{6cm}{URL adresa aktuálního HTTP GET požadavku} \\ \hline
+
+
+\end{tabular}
+\end{table}
+\section{Získání skupiny}
 \end{document}
