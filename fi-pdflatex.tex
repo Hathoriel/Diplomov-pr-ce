@@ -484,7 +484,7 @@ V následujících odstavcích se zabývám popisem modifikací databáze, ktero
 
 Jelikož autorizační server OpenID Connect neposkytuje uživatelský identifikátor \textbf{perun\_id} v \textbf{Claims} a systém Shongo s tímto identifikátorem pracuje, byla nutná náhrada tohoto identifikátoru za \textbf{einfra id}. Zmíněné náhradě identifikátorů předcházela modifikace databázového schématu, protože nový identifikátor \textbf{einfra id} by překračoval maximální povolenou délku sloupce vyhrazenou pro \textbf{perun\_id}. Uvedený sloupec s uživatelským identifikátorem se používal v tabulkách \textbf{person}, \textbf{user\_settings}, \textbf{resource}, \textbf{acl\_identity} a \textbf{abstract\_reservation\_request}. Jelikož je databázové schéma definované pomocí technologie Hibernate, došlo ke změně délky sloupce jak na straně databáze, tak na straně třídy definující vlastnosti používané tabulky. 
 \par  
-Na straně zdrojového kódu je v souboru \texttt{cz/cesnet/shongo/controller/api/Controller.java} délka sloupce definovaná v proměnné \texttt{USER\_ID\_COLUMN\_LENGTH}. Ta je typu VARCHAR a byla změněna z délky 32 na 100. Dále byla provedena změna délky sloupce v databázových tabulkách pomocí následujícího SQL příkazu.
+Na straně zdrojového kódu je v souboru \texttt{cz/cesnet/shongo/controller/api/Controller.java} délka sloupce definovaná v proměnné \texttt{USER\_ID\_COLUMN\_LENGTH}. Ta je typu VARCHAR a byla změněna z délky 32 na 255. Dále byla provedena změna délky sloupce v databázových tabulkách pomocí následujícího SQL příkazu.
 
 \begin{lstlisting}[
            language=SQL,
@@ -496,13 +496,13 @@ Na straně zdrojového kódu je v souboru \texttt{cz/cesnet/shongo/controller/ap
         ]
 ALTER TABLE {nazev_tabulky}  
 ALTER COLUMN {nazev_sloupce}
-TYPE VARCHAR (100);
+TYPE VARCHAR (255);
 \end{lstlisting}
 
 Další fází modifikace stávající databáze bylo již samotné nahrazení identifikátoru \textbf{perun\_id} za \textbf{einfra id} v tabulkách \textbf{person}, \textbf{user\_settings}, \textbf{resource}, \textbf{acl\_identity} a \textbf{abstract\_reservation\_request}. V rámci zmíněné modifikace byly doplněny i dodatečné údaje o uživateli v držené tabulkách \textbf{person} a \textbf{user\_settings}. Jde o údaje o uživatelově jménu, emailové adrese, organizaci, preferovaném jazyku a časové zóně, které byly dříve získávány pomocí webové služby Perun. Tato služba se v nové implementaci již nepoužívá a proto musely být představené údaje pro všechny uživatele v systému Shongo uloženy do databáze. Výhodou je, že tabulky obsahují požadované sloupce, protože se s zmíněnými uživatelskými údaji již pracovalo při správě anonymních uživatelů. 
 \par
 
-Algoritmus, který popisované modifikace provedl jsem implementoval v jazyce Java a obsahuje následující kroky pro každou z tabulek vyžadující změnu. Počáteční fází bylo získání všech uživatelských identifikátorů \textbf{perun\_id} z dotyčné tabulky. V dalším kroku byl pro každý identifikátor vytvořen GET požadavek na rozhraní webové služby Perun, které je přítomno na URL adrese \texttt{https://shongo-auth.cesnet.cz/perun/users/\{perun\_id\}}. Uvedený dotaz na API služby Perun vrátí požadované informace o uživateli ve formátu JSON s následující strukturou.
+Algoritmus, který popisované modifikace provedl jsem implementoval v jazyce Java a obsahuje následující kroky pro každou z tabulek vyžadující změnu. Počáteční fází bylo získání všech záznamů s uživatelskými identifikátory \textbf{perun\_id} z dotyčné tabulky. V dalším kroku byl pro každý záznam s identifikátorem \textbf{perun\_id} vytvořen GET požadavek na rozhraní webové služby Perun, které je přítomno na URL adrese \texttt{https://shongo-auth.cesnet.cz/perun/users/\{perun\_id\}}. Uvedený dotaz na API služby Perun vrátí požadované informace o uživateli ve formátu JSON s následující strukturou.
 \begin{lstlisting}[language=json,firstnumber=1]
 {
     "id": {id},
@@ -536,14 +536,22 @@ Algoritmus, který popisované modifikace provedl jsem implementoval v jazyce Ja
 
 Význam jednotlivých atributů v odpovědi je popsán v příloze \hyperref[table:perunws:user]{A.1}. 
 \par
-Dalším krokem bylo získání identifikátoru \textbf{einfra id} ze zobrazené odpovědi. Tento identifikátor se nachází v poli \textbf{sources}, představující poskytovatele identit, konkrétně v atributu \textbf{login}. Jelikož nás zajímá pouze identifikátor v rámci Proxy IdP infrastruktury CESNET, musel algoritmus najít poskytovatele identit, který má v atributu \textbf{name} řetězec \textbf{https://login.cesnet.cz/idp/}. Jestli algoritmus našel zmíněného poskytovatele identit,  v atributu \textbf{login} se nachází \textbf{perun id}. Tento údaj byl poznamenán do nově vytvořeného objektu, představujícího uživatele. Do toho objektu byly dále uloženy informace o uživatelově jménu, emailové adrese, organizaci, preferovaném jazyku a časové zóně. 
+Dalším krokem algoritmu bylo získání identifikátoru \textbf{einfra id} ze zobrazené odpovědi. Tento identifikátor se nachází v poli \textbf{sources}, představující poskytovatele identit, konkrétně v atributu \textbf{login}. Jelikož nás zajímá pouze identifikátor v rámci Proxy IdP infrastruktury CESNET, musel algoritmus najít poskytovatele identit, který má v atributu \textbf{name} řetězec \textbf{https://login.cesnet.cz/idp/}. Jestli algoritmus našel zmíněného poskytovatele identit,  v atributu \textbf{login} se nachází \textbf{perun id} hledaného uživatele. Tento údaj byl poznamenán do nově vytvořeného objektu, představujícího uživatele. Do toho objektu byly dále uloženy informace o uživatelově jménu, emailové adrese, organizaci, preferovaném jazyku a časové zóně. 
 
 \par
 
-V závěrečné fázi je pro každého takto vytvořeného objektu uživatele v aktuálně zpracovávané tabulce nahrazeno \textbf{perun\_id} za \textbf{einfra id}. Jak již bylo zmíněno, speciálním případem jsou tabulky \textbf{person} a \textbf{user\_settings}, kde došlo navíc k vložení chybějících uživatelských údajů.
+V závěrečné fázi algoritmu je pro každého takto vytvořeného objektu uživatele v aktuálně zpracovávané tabulce nahrazeno \textbf{perun\_id} za \textbf{einfra id}. Jak již bylo zmíněno, speciálním případem jsou tabulky \textbf{person} a \textbf{user\_settings}, kde došlo navíc k vložení chybějících uživatelských údajů. Následující obrázek \hyperref[fig:erd-person-user-settings]{4.1} popisuje strukturu tabulek \textbf{person} a \textbf{user\_settings}. 
+
+\begin{figure}[H]
+\label{fig:erd-person-user-settings}
+\caption{Struktura tabulek \textbf{person} a \textbf{user\_settings}}
+\centering
+\includegraphics[width=12.8cm]{pics/erd-person-user_settings} 
+\end{figure}
+\par 
+
 Zmíněnou modifikaci tabulky \textbf{person} pro každého uživatele ilustruje následující SQL dotaz.
 
-TODO udelat visual paradigm tabulku
 \begin{lstlisting}[
            language=SQL,
            showspaces=false,
@@ -578,9 +586,33 @@ locale = {locale},
 WHERE id = {id};
 \end{lstlisting}
 
-TODO udelat visual paradigm tabulku
-Je důležité poznamenat, že při zpracování tabulky \textbf{acl\_identity} byl postup odlišný. Uvedená tabulka má sloupce \textbf{id}, \textbf{principal\_id} a \textbf{type} ve kterých si drží své záznamy. Údaj ve sloupci \textbf{type} může nabývat hodnoty \textbf{USER} nebo \textbf{GROUP}. Jestliže nabývá hodnoty \textbf{USER}, potom je ve sloupci \textbf{principal\_id} obsažen identifikátor uživatele \textbf{perun\_id}. Pokud sloupec \textbf{type} obsahuje hodnotu \textbf{GROUP}, potom se ve sloupci \textbf{principal\_id} nachází identifikátor skupiny. Tuto informaci je důležité zohlednit, při nahrazení 
-
+Je důležité poznamenat, že při zpracování tabulky \textbf{acl\_identity} byl postup odlišný. Uvedená tabulka má sloupce \textbf{id}, \textbf{principal\_id} a \textbf{type} ve kterých si drží své záznamy. Údaj ve sloupci \textbf{type} může nabývat hodnoty \textbf{USER} nebo \textbf{GROUP}. Jestliže nabývá hodnoty \textbf{USER}, potom je ve sloupci \textbf{principal\_id} obsažen identifikátor uživatele \textbf{perun\_id}. Pokud sloupec \textbf{type} obsahuje hodnotu \textbf{GROUP}, potom se ve sloupci \textbf{principal\_id} nachází identifikátor skupiny. Tato informace musela být zohledněna při nahrazování identifikátoru \textbf{principa\_id}. 
+\par 
+Pokud hodnota ve sloupci \textbf{principal\_id} představovala \textbf{perun\_id}, postupoval algoritmus jako v předchozím popisovaném případě a byl nahrazen za \textbf{einfra id}. Jestliže hodnota ve sloupci \textbf{principal\_id} představovala identifikátor skupiny, tento identifikátor musel být nahrazen za URN \footnote{URN RFC, \url{https://tools.ietf.org/html/rfc2141}} dotyčné skupiny. Uvedené URN (Uniform Resource Name) je textový řetězec, který se používá k jednoznačné identifikaci zdroje. Zmíněné nahrazení za URN bylo provedeno také pomocí webové služby Perun, ale s použitím rozhraní k získání dodatečných informací o požadované skupině. Volání představeného rozhraní bylo provedeno pomocí GET požadavku na URL adresu  \texttt{https://shongo-auth.cesnet.cz/perun/groups/\{group\_id\}}. Uvedený GET požadavek vrátil data o skupině v následující JSON struktuře.   
+\begin{lstlisting}[language=json,firstnumber=1]
+{
+    "id": {id},
+    "name": "{name}",
+    "unique_name": "{unique_name}",
+    "type": "{type}",
+    "description": "{discription}",
+    "admins": ["admin"],
+    "_links": {
+        "self": {
+            "href": "{href}"
+        },
+        "users": {
+            "href": "{href}"
+        },
+        "admins": {
+            "href": "{href}"
+        }
+    }
+}
+\end{lstlisting}
+Význam jednotlivých atributů v odpovědi služby Perun je popsán v příloze \hyperref[table:perunws:group]{A.2}. 
+\par
+Z uvedené struktury JSON byl použit atribut \textbf{unique\_name}, který reprezentuje požadované URN skupiny. Za tuto hodnotu URN skupiny byla potom hodnota v sloupci \textbf{principal\_id} pomocí SQL příkazu nahrazena. 
 
 \subsection{Implementace na straně rezervačního systému Shongo}
 \label{ShongoImpl-web}
@@ -621,4 +653,23 @@ Následující údaje o uživateli jsou získány pomocí HTTP GET požadavku na
 \end{tabular}
 \end{table}
 \section{Získání skupiny}
+Následující údaje o skupině jsou získány pomocí HTTP GET požadavku na URL adresu \texttt{https://shongo-auth.cesnet.cz/perun/groups/\{group\_id\}}
+
+\label{table:perunws:group}
+\begin{table}[h]
+\begin{tabular}{|l|l|}
+\hline
+\texttt{id (int)}                       & \parbox[t]{6cm}{identifikátor skupiny v rámci Perun služby}  \\ \hline
+\texttt{name (String)}                  & název skupiny  \\ \hline
+\texttt{unique\_name (String)}          & URN skupiny  \\ \hline
+\texttt{type (String)}                  &  typ skupiny \\ \hline
+\texttt{description (String)}           & popis skupiny  \\ \hline
+\texttt{admins (Array)}                 & pole administrátorů skupiny  \\ \hline
+\texttt{\_links.self.href (String)}     & \parbox[t]{6cm}{URL adresa aktuálního HTTP GET požadavku}  \\ \hline
+\texttt{\_links.users.href (String)}    & \parbox[t]{6cm}{URL adresa HTTP požadavku na získání uživatelů dané skupiny}  \\ \hline
+\texttt{\_links.admins.href (String)}   & \parbox[t]{6cm}{URL adresa HTTP požadavku na získání administrátorů dané skupiny}  \\ \hline
+
+
+\end{tabular}
+\end{table}
 \end{document}
