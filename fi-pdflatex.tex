@@ -113,7 +113,7 @@
 
 
 \lstset{
-  basicstyle      = \ttfamily,%
+  basicstyle      = \footnotesize\ttfamily,%
   identifierstyle = \color{black},%
   keywordstyle    = \color{blue},%
   keywordstyle    = {[2]\color{cyan}},%
@@ -121,8 +121,9 @@
   stringstyle     = \color{teal},%
   commentstyle    = \itshape\color{magenta},
   language=XML,
-  inputencoding=utf8,
-  morekeywords={Location}
+  morekeywords={Location},
+  backgroundcolor=\color{background},
+  frame=lines
 }
 \usepackage{floatrow} %% Putting captions above tables
 \floatsetup[table]{capposition=top}
@@ -427,18 +428,20 @@ V této sekci se zabývám popisem implementace, kterou bylo nutné provézt př
 První změnou byla editace konfiguračního souboru \texttt{config/connect.ini}. Tento soubor zajišťuje mapování získaných \textbf{Claims} z proměnných prostředí PHP serveru po autentizaci. Následují výňatek konfiguračního souboru popisuje nové mapování proměnných prostředí PHP serveru do proměnných autentizačního algoritmu. 
 
 \begin{lstlisting}[
-   basicstyle=\ttfamily\small,
+    basicstyle=\footnotesize\ttfamily,
     columns=fullflexible,
     commentstyle=\color{gray}\ttfamily,
     morekeywords={},
     otherkeywords={=,:},
-    keywordstyle={\color{red}\bfseries}
+    keywordstyle={\color{red}\bfseries},
+    backgroundcolor=\color{background},
+    frame=lines
 ]
-1 uid_field = OIDC_CLAIM_sub
-2 eppns_field = OIDC_CLAIM_eppns
-3 mail_field = OIDC_CLAIM_email
-4 givenName_field = OIDC_CLAIM_given_name
-5 sn_field = OIDC_CLAIM_family_name
+uid_field = OIDC_CLAIM_sub
+eppns_field = OIDC_CLAIM_eppns
+mail_field = OIDC_CLAIM_email
+givenName_field = OIDC_CLAIM_given_name
+sn_field = OIDC_CLAIM_family_name
 \end{lstlisting}
 První řádek výňatku mapuje unikátní identifikátor einfra id, druhý řádek seznam obsahující \textbf{eduPersonPrincipalName}, další řádek emailovou adresu, předposlední řádek jméno a poslední řádek příjmení uživatele.  \par 
 
@@ -486,9 +489,10 @@ Na straně zdrojového kódu je v souboru \texttt{cz/cesnet/shongo/controller/ap
 \begin{lstlisting}[
            language=SQL,
            showspaces=false,
-           basicstyle=\ttfamily,
-           numbers=left,
-           commentstyle=\color{gray}
+           basicstyle=\footnotesize\ttfamily,
+           commentstyle=\color{gray},
+           backgroundcolor=\color{background},
+           frame=lines
         ]
 ALTER TABLE {nazev_tabulky}  
 ALTER COLUMN {nazev_sloupce}
@@ -530,11 +534,12 @@ Algoritmus, který popisované modifikace provedl jsem implementoval v jazyce Ja
 }
 \end{lstlisting}
 
-Význam jednotlivých atributů v odpovědi je popsán v příloze \hyperref[table:perunws:user]{A.1}.
+Význam jednotlivých atributů v odpovědi je popsán v příloze \hyperref[table:perunws:user]{A.1}. 
+\par
+Dalším krokem bylo získání identifikátoru \textbf{einfra id} ze zobrazené odpovědi. Tento identifikátor se nachází v poli \textbf{sources}, představující poskytovatele identit, konkrétně v atributu \textbf{login}. Jelikož nás zajímá pouze identifikátor v rámci Proxy IdP infrastruktury CESNET, musel algoritmus najít poskytovatele identit, který má v atributu \textbf{name} řetězec \textbf{https://login.cesnet.cz/idp/}. Jestli algoritmus našel zmíněného poskytovatele identit,  v atributu \textbf{login} se nachází \textbf{perun id}. Tento údaj byl poznamenán do nově vytvořeného objektu, představujícího uživatele. Do toho objektu byly dále uloženy informace o uživatelově jménu, emailové adrese, organizaci, preferovaném jazyku a časové zóně. 
 
+\par
 
-
-Zmíněné informace o uživateli jsou uloženy do objektu představujícího uživatele. 
 V závěrečné fázi je pro každého takto vytvořeného objektu uživatele v aktuálně zpracovávané tabulce nahrazeno \textbf{perun\_id} za \textbf{einfra id}. Jak již bylo zmíněno, speciálním případem jsou tabulky \textbf{person} a \textbf{user\_settings}, kde došlo navíc k vložení chybějících uživatelských údajů.
 Zmíněnou modifikaci tabulky \textbf{person} pro každého uživatele ilustruje následující SQL dotaz.
 
@@ -542,9 +547,10 @@ TODO udelat visual paradigm tabulku
 \begin{lstlisting}[
            language=SQL,
            showspaces=false,
-           basicstyle=\ttfamily,
-           numbers=left,
-           commentstyle=\color{gray}
+           basicstyle=\footnotesize\ttfamily,
+           commentstyle=\color{gray},
+           backgroundcolor=\color{background},
+           frame=lines
         ]
 UPDATE person SET 
 user_id = {einfra_id},
@@ -559,9 +565,10 @@ Obdobně při modifikaci tabulky \textbf{user\_settings} byl použit následují
 \begin{lstlisting}[
            language=SQL,
            showspaces=false,
-           basicstyle=\ttfamily,
-           numbers=left,
-           commentstyle=\color{gray}
+           basicstyle=\footnotesize\ttfamily,
+           commentstyle=\color{gray},
+           backgroundcolor=\color{background},
+           frame=lines
         ]
 UPDATE user_settings SET 
 user_id = {einfra_id},
@@ -587,12 +594,12 @@ Token endpoint/userinfo endpoint
 \appendix %% Start the appendices.
 \chapter{Sémantika odpovědí webové služby Perun}
 \section{Získání uživatele}
-
+Následující údaje o uživateli jsou získány pomocí HTTP GET požadavku na URL adresu \texttt{https://shongo-auth.cesnet.cz/perun/users/\{perun\_id\}}
 \label{table:perunws:user}
 \begin{table}[h]
 \begin{tabular}{|l|l|}
 \hline
-\texttt{id (int)}                   & identifikátor perun id uživatele  \\ \hline
+\texttt{id (int)}                   & \parbox[t]{6cm}{identifikátor uživatele v rámci Perun služby } \\ \hline
 \texttt{first\_name (String)}       & křestní jméno uživatele \\ \hline
 \texttt{last\_name (String)}        & příjmení uživatele \\ \hline
 \texttt{principal\_names (Array)}   & \parbox[t]{6cm}{pole obsahující všechny eduPersonPrincipalName uživatele} \\ \hline
@@ -601,11 +608,11 @@ Token endpoint/userinfo endpoint
 \texttt{phone (String)}             & telefonní číslo uživatele \\ \hline
 \texttt{mail (String)}              & emailová adresa uživatele \\ \hline
 \texttt{display\_name (String)}     & úplné jméno uživatele \\ \hline
-\texttt{sources (Array)}            & pole skupin, v kterých je uživatel členem\\ \hline
-\texttt{sources.id (int)}           & identifikátor skupiny \\ \hline
-\texttt{sources.name (String)}      & název skupiny \\ \hline
-\texttt{sources.loa (int)}          & úroveň zabezpečení skupiny  \\ \hline
-\texttt{sources.login (String)}     & identifikátor uživatele v dané skupině \\ \hline
+\texttt{sources (Array)}            & \parbox[t]{6cm}{pole poskytovatelů identit, v kterých je uživatel registrován} \\ \hline
+\texttt{sources.id (int)}           & \parbox[t]{6cm}{identifikátor poskytovatele identit} \\ \hline
+\texttt{sources.name (String)}      & název poskytovatele identit \\ \hline
+\texttt{sources.loa (int)}          & \parbox[t]{6cm}{úroveň zabezpečení poskytovatele identit}  \\ \hline
+\texttt{sources.login (String)}     & \parbox[t]{6cm}{identifikátor uživatele u daného poskytovatele identit} \\ \hline
 \texttt{member\_id (int)}           & zeptat se Miloše \\ \hline
 \texttt{member\_status (String)}    & zeptat se Miloše \\ \hline
 \texttt{\_links.self.href (String)} & \parbox[t]{6cm}{URL adresa aktuálního HTTP GET požadavku} \\ \hline
