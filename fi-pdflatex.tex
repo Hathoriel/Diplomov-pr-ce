@@ -181,6 +181,7 @@ Po té následuje část zdrojového kódu, v které je provedeno samotné přih
 Podobně jako autentizační infrastruktura systému Adobe Connect je i autentizační infrastruktura rezervačního systému Shongo implementována na serveru \texttt{shongo-auth.cesnet.cz}. Systém Shongo využívá při přihlašování uživatelů jak Shibboleth, tak webovou službu Perun. Je důležité poznamenat, že autentizační infrastruktura využívá moduly \textbf{shongo-authn-server} a \textbf{zf2-openid-connect-server-module} k zpracování autentizačních požadavků. Uvedené moduly se nacházejí v adresáři \texttt{/data/app/prod/shongo-authn-server/}. Ačkoliv se jedná o implementaci OpenID Connect na straně poskytovatele služeb, nejsou moduly napojeny na autorizační server OpenID Connect, ale pouze na systém Shibboleth v autentizační infrastruktuře CESNETu. \par
 
 Postup při přihlašování uživatele do systému Shongo je následující. Pokud se chce uživatel autentizovat, klikne na přihlašovací odkaz, který ho přesměruje na URL adresu \texttt{shongo-auth.cesnet.cz/authn/oic/authorize}. Požadavek na přístup na uvedenou URL adresu obsahuje další parametry nezbytné pro dokončení autentizace:
+\label{shongo:state}
 \begin{itemize}
     \item \textbf{client\_id} má hodnotu \texttt{meetings.cesnet.cz} a představuje identifikace klienta u autorizačního serveru,
     \item \textbf{redirect\_url} URL adresa na kterou prohlížeč přesměrován po autentizaci, má hodnotu \texttt{https://meetings.cesnet.cz/login}, 
@@ -609,7 +610,12 @@ Z uvedené struktury JSON byl použit atribut \textbf{unique\_name}, který repr
 \label{ShongoImpl-web}
 V této sekci se věnuji tématu, jakým způsobem musel být rezervační systém Shongo nasazený na adrese \texttt{meetings.cesnet.cz} adaptován na provedené změny v rámci implementace nové autentizační a autorizační infrastruktury. 
 \par
-Token endpoint/userinfo endpoint
+
+Prvním krokem byla změna URL adresy výchozího bodu autentizace, \textbf{UserInfo endpointu} a \textbf{Token endpointu}. Důvodem představené změny bylo, aby zmíněné adresy, jejichž využití vyžaduje autentizaci pomocí protokolu OpenID Connect, odpovídaly nastavení definovaném v rámci konfigurace Apache. \par
+
+
+Výchozí část URL adresy, která slouží jako prefix URL adresy zajištující autentizaci a autorizaci je definována v souboru \texttt{cz/cesnet/shongo/client/web/ClientWebConfiguration.java}. Zmíněnou hodnotu, která je v stávající implementaci nastavena na URL adresu \texttt{/authn/oic} vrací metoda \texttt{getAuthenticationServerUrl}. Představenou část URL adresy jsem pozměnil na hodnotu \texttt{/oidc-authn/oic}, tak aby odpovídala URL adresám, které jsou chráněny OpenID Connect autentizací. Ostatní parametry URL adresy nebyly změněny. \par
+
 
 \chapter{Závěr}
 \printbibliography[title={Literatura}]
