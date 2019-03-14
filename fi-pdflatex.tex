@@ -59,7 +59,7 @@
     TeXtitle      = {Autentizační a autorizační infrastruktura pro videokonferenční prostředí},
     keywords      = {OpenID Connect, autentizace, autorizace, rezervační systém Shongo, Adobe Connect, CESNET, videokonference, webkonference},
     TeXkeywords   = {OpenID Connect, autentizace, autorizace, rezervační systém Shongo, Adobe Connect, CESNET, videokonference, webkonference},
-    abstract      = {Diplomová práce se zabývá návrhem a implementací nové autentizační a autorizační infrastruktury pro webkonferenční prostředí provozované sdružením CESNET, které sestavá ze služeb meetings.cesnet.cz a Adobe Connect. Implementace nové autentizační a autorizační infrastruktury je založena na technologii OpenID Connect a využívá Proxy IdP v infrastruktuře CESNETu. Součástí práce je také analýza stávající autentizační a autorizační infrastruktury, na kterou implementace navazuje. \par První část práce se věnuje analýze požadavků a návrhu nové autentizační a autorizační infrastruktury. Druhá část představuje použité technologie, které byly využity při implementaci. Třetí a zároveň poslední část práce popisuje samotnou implementaci nové autentizační a autorizační infrastruktury pro služby meetings.cesnet.cz a Adobe Connect},
+    abstract      = {Diplomová práce se zabývá návrhem a implementací nové autentizační a autorizační infrastruktury pro webkonferenční prostředí provozované sdružením CESNET, které sestavá ze služeb meetings.cesnet.cz a Adobe Connect. Implementace nové autentizační a autorizační infrastruktury je založena na technologii OpenID Connect a využívá Proxy IdP v infrastruktuře CESNETu. Součástí práce je také analýza stávající autentizační a autorizační infrastruktury, na kterou implementace navazuje. \par První část práce se věnuje analýze požadavků a návrhu nové autentizační a autorizační infrastruktury. Druhá část představuje použité technologie, které byly využity při implementaci. Třetí a zároveň poslední část práce popisuje samotnou implementaci nové autentizační a autorizační vrstvy pro služby meetings.cesnet.cz a Adobe Connect},
     thanks        = {These are the acknowledgements for my thesis, which can
 
                      span multiple paragraphs.},
@@ -136,13 +136,6 @@ Výsledkem mé práce je plně funkční autentizační a autorizační infrastr
 
 Text této diplomové práce je členěn následujícím způsobem. První část se věnuje úvodu. Po úvodu následuje druhá kapitola, ve které popisuji návrh infrastruktury autorizačního a autentizačního systému. V třetí kapitole se věnuji použitým technologiím, které jsem využil v rámci implementace diplomové práce. V následující čtvrté kapitole se zabývám popisem implementace. Poslední pátá kapitola shrnuje výsledky mé práce v závěru. 
 
-\section{Slovník pojmů}
-\textbf{Dotaz Miloši:} Mám tuto kapitolu sem dávat nebo ne? Viděl jsem ji u Opicaka v DP. \\ 
-\par
-\textbf{Claim} Kus informace, přiřazení nějaké entitě, většinou uživateli. \\ \par 
-\noindent
-\textbf{Scope} Indikuje které informace ve formě \textbf{claim} klient požaduje.
-
 \chapter{Návrh autorizační a autentizační infrastruktury}
 V této kapitole se budu věnovat návrhu autorizační a autentizační infrastruktury pro systémy Adobe Connect a Shongo. V následující sekci nejprve popisuji stávající autentizační a autorizační infrastrukturu. Dále se v další sekci věnuji analýze požadavků na novou infrastrukturu. V poslední sekci této kapitoly se zabývám samotným návrhem nové autentizační a autorizační infrastruktury, který plyne z provedené analýzy stávajícího systému.    
 
@@ -158,9 +151,9 @@ uvedené databázi si uchovává informace o uživatelích,
 které získá po úspěšné autentizaci uživatele. Pokud záznam o uživateli
 v databázi neexistuje, je vytvořen. Jelikož Adobe Connect využívá jen
 identifikaci, jméno, příjmení a emailovou adresu autentizovaného uživatele, není v stávající implementaci
-potřeba využívat službu Perun. V následujících odstavcích této kapitoly detailně popisuji autentizační a autorizační infrastruktury systému Adobe Connect. \par
+potřeba využívat službu Perun. V následujících odstavcích této kapitoly detailně popisuji autentizační a autorizační vrstvu systému Adobe Connect. \par
 
-Zmíněná autentizační a autorizační infrastruktura webkonferenčního systému Adobe Connect je implementována v adresáři \texttt{/data/app/prod/aclogin-ng/}. Na uvedený adresář se budu dále odkazovat. Konfigurace představované infrastruktury se nachází v podaresáři \texttt{config/}. Samotná implementace autentizační a autorizační infrastruktury se nachází v podaresáři \texttt{lib/AcLogin/}. \par
+Zmíněná autentizační a autorizační vrstva webkonferenčního systému Adobe Connect je implementována v adresáři \texttt{/data/app/prod/aclogin-ng/}. Na uvedený adresář se budu dále odkazovat. Konfigurace představované vrstvy se nachází v podaresáři \texttt{config/}. Samotná implementace autentizační a autorizační vrstvy se nachází v podaresáři \texttt{lib/AcLogin/}. \par
 
 Postup při přihlašování do webkonferenčního systému Adobe Connect provozovaného na URL adrese \texttt{www.connect.cesnet.cz} je následující. Pokud se chce uživatel do zmíněného systému přihlásit, klikne na přihlašovací odkaz, který ho přesměruje na URL adresu \texttt{https://shongo-auth.cesnet.cz/aclogin-ng/instance/connect}. Jelikož se jedná o adresu která je chráněna autentizačním systémem Shibboleth, uživatel je před samotným přístupem na uvedenou adresu přesměrován na rozcestník federace identit. Zmíněný rozcestník federace identit se nachází na URL adrese \texttt{https://ds.eduid.cz/wayf.php}. Zde si uživatel vybere poskytovatele identity, pomocí kterého se přihlásí. Po přihlášení u vybraného poskytovatele identity je uživatel  přesměrován zpět na požadovanou URL \texttt{https://shongo-auth.cesnet.cz/aclogin-ng/instance/connect} a začne zpracování dat získaných po autentizaci. Jedná se o informace o autentizovaném uživateli, které byla nastaveny do proměnných prostředí PHP serveru. Systém Shibboleth uloží informace o uživateli do pole \texttt{\$\_SERVER} pod následujícími indexy: 
 
@@ -178,7 +171,7 @@ Další fází v představovaném PHP skriptu je využití popisovaného Adobe C
 Po té následuje část zdrojového kódu, v které je provedeno samotné přihlášení uživatele uživatele pomocí unikátního identifikátoru \textbf{eppn} a generovaného hesla. Zmíněné heslo se generuje pomocí hašovací funkce MD5\footnote{Algoritmus hašovací funkce MD5, \url{www.tools.ietf.org/html/rfc1321}}, které se na vstup předá řetězec složený z \textbf{eppn} uživatele a náhodného neměnného řetězce, tzv. soli. Následuje kontrola úspěšnosti přihlášení a vytvoření řetězce sezení, tzv. \textbf{Session String}. Představený \textbf{Session String} jednoznačně identifikuje provedenou autentizaci. Pokud přihlášení proběhlo v pořádku, autentizovaný uživatel je s URL parametrem \textbf{Session String} přesměrován na svoji úvodní stránku webkonferečního systému Adobe Connect.      
 
 \subsection{Infrastruktura Shongo}
-Podobně jako autentizační infrastruktura systému Adobe Connect je i autentizační infrastruktura rezervačního systému Shongo implementována na serveru \texttt{shongo-auth.cesnet.cz}. Systém Shongo využívá při přihlašování uživatelů jak Shibboleth, tak webovou službu Perun. Je důležité poznamenat, že autentizační infrastruktura využívá moduly \textbf{shongo-authn-server} a \textbf{zf2-openid-connect-server-module} k zpracování autentizačních požadavků. Uvedené moduly se nacházejí v adresáři \texttt{/data/app/prod/shongo-authn-server/}. Ačkoliv se jedná o implementaci OpenID Connect na straně poskytovatele služeb, nejsou moduly napojeny na autorizační server OpenID Connect, ale pouze na systém Shibboleth v autentizační infrastruktuře CESNETu. \par
+Podobně jako autentizační vrstva systému Adobe Connect je i autentizační vrsva rezervačního systému Shongo implementována na serveru \texttt{shongo-auth.cesnet.cz}. Systém Shongo využívá při přihlašování uživatelů jak Shibboleth, tak webovou službu Perun. Je důležité poznamenat, že autentizační vrstva systému Shongo využívá moduly \textbf{shongo-authn-server} a \textbf{zf2-openid-connect-server-module} k zpracování autentizačních požadavků. Uvedené moduly se nacházejí v adresáři \texttt{/data/app/prod/shongo-authn-server/}. Ačkoliv se jedná o implementaci OpenID Connect na straně poskytovatele služeb, nejsou moduly napojeny na autorizační server OpenID Connect, ale pouze na systém Shibboleth v autentizační infrastruktuře CESNETu. \par
 
 Postup při přihlašování uživatele do systému Shongo je následující. Pokud se chce uživatel autentizovat, klikne na přihlašovací odkaz, který ho přesměruje na URL adresu \texttt{shongo-auth.cesnet.cz/authn/oic/authorize}. Požadavek na přístup na uvedenou URL adresu obsahuje další parametry nezbytné pro dokončení autentizace:
 \label{shongo:state}
@@ -192,7 +185,7 @@ Postup při přihlašování uživatele do systému Shongo je následující. Po
 \end{itemize}
 
 
-Zmíněná URL adresa je namapována na metodu \texttt{authorizeAction} třídy \texttt{AuthorizeController}, která se nachází v modulu \textbf{zf2-openid-connect-server-module}. Ve zmíněném modulu  se nacházejí i následující představované třídy. V uvedené metodě \texttt{authorizeAction} začíná běh autentizačního algoritmu. \par 
+Představená URL adresa je namapována na metodu \texttt{authorizeAction} třídy \texttt{AuthorizeController}, která se nachází v modulu \textbf{zf2-openid-connect-server-module}. Ve zmíněném modulu  se nacházejí i následující představované třídy. V uvedené metodě \texttt{authorizeAction} začíná běh autentizačního algoritmu. \par 
 
 Dále je v metodě \texttt{authorizeAction} provedena kontrola, zda je uživatel již přihlášen. Pokud tato skutečnost nastala, předá se řízení algoritmu metodě \texttt{responseAction} nacházející se v aktuální třídě \texttt{AuthorizeController}. Uvedená metoda načte a  aktualizuje data udržované v kontextu o přihlášeném uživateli. Jedná se o objekt \textbf{session} a \textbf{authorize code}. Uvedený objekt \textbf{session} jednoznačně identifikuje vytvořené sezení. \textbf{Authorize code} je textový řetězec, který po autentizaci obdrží klient od autorizačního serveru. Zmíněný \textbf{Authorize code} slouží k jednorázové výměně za tzv. \textbf{ID Token} nebo \textbf{Access Token}. Dalšímu použití uvedených žetonů se detailněji zabývám v rámci popisu technologií \hyperref[sec:oauth]{OAuth} a \hyperref[sec:oidc]{OpenID Connect}. S retězcem \textbf{Authorize Code} je uživatel přesměrován na úvodní stránku přihlášeného uživatele portálu Shongo. Metodě \texttt{responseAction} se dále věnuji v \hyperref[sec:responseAction]{odstavci níže}. \par 
 
@@ -228,13 +221,13 @@ Z konzultací s vedoucím diplomové práce vyplynuly následující požadavky.
 Dalším požadavkem bylo, aby implementace byla z důvodu centralizace autentizanční a autorizační infrastruktury integrována do stávajícího serveru \texttt{shongo-auth.cesnet.cz}. V neposlední řadě bylo požadováno odstranění nepotřebného kódu po nevyužitých voláních webové služby Perun. Informace o přihlášeném uživateli, které byly zprostředkovány voláním webové služby Perun musely být nově získány z autorizačního serveru poskytovatele OpenID Connect, který se nachází v infrastruktuře CESNETu.     
 
 
-\section{Návrh nové infrastruktury}
+\section{Návrh nové autentizační vrstvy}
 Zde se budu věnovat otázce, jakým způsobem je koncipován návrh nové autentizační a autorizační infrastruktury pro systémy Adobe Connect a Shongo. Společným prvkem pro oba zmíněné systémy je fakt, že návrh nové autentizační a autorizační architektury navazuje na architekturu stávající. 
 
-\subsection{Infrastruktura Adobe Connect}
+\subsection{Autentizační vrstva Adobe Connect}
 Nová implementace autentizační a autorizační infrastruktury webkonferenčního systému Adobe Connect bude využívat již existující infrastrukturu a bude s ní úzce svázána. To znamená, že bude dodána implementace do stávajícího autentizačního serveru \texttt{shongo-authn.cesnet.cz}. Jak už bylo uvedeno výše, stávající autentizační a autorizační infrastruktura využívá systému Shibboleth, který bude v rámci této diplomové práce nahrazen implementací systému OpenID Connect. To znamená, že bude muset být systém OpenID Connect a moduly na straně autentizačního serveru \texttt{shongo-authn.cesnet.cz} do sebe vhodným způsobem integrovány. Tuto skutečnost dosáhneme řádnou instalací autentizačního modulu OpenID Connect webovéo serveru Apache na autentizační server. Dále musíme zajistit, aby došlo k přemapování proměnných získaných po autentizaci uživatele. Implementaci zmíněného přemapování popisuji v kapitole \hyperref[ACImpl]{Implementace autentizačního a autorizačního modulu pro systém Adobe Connect}. 
 
-\subsection{Infrastruktura Shongo}
+\subsection{Autentizační vrstva služby meetings.cesnet.cz}
 Obdobně jako v případě systému Adobu Connect, bude nová implementace autorizace a autentizace uživatelů úzce propojena se stávající implementací. Jak už bylo zmíněno výše, stávající implementace se nachází na serveru \texttt{shongo-auth.cesnet.cz}. Analogicky bude muset být v rámci instalace Apache modulu OpenID Connect provedena konfigurace webového serveru. \par
 V další fázi bude na serveru \texttt{shongo-auth.cesnet.cz} následovat implementace procesu, který zajistí propojení s autorizačním serverem OpenID Connect. Uvedená implementace zaručí mapování nově získaných uživatelských dat do stávajícího mechanizmu autentizace a autorizace uživatele. Ta bude realizována pomocí nově vytvořeného datového konektoru OIDC. Je důležité poznamenat, že nová implementace autorizačního algoritmu zachová nezbytnou kontrolu příslušnosti uživatele do skupiny einfra. 
 \par
@@ -642,7 +635,7 @@ Následující údaje o uživateli jsou získány pomocí HTTP GET požadavku na
 \texttt{sources.name (String)}      & název poskytovatele identit \\ \hline
 \texttt{sources.loa (int)}          & \parbox[t]{6cm}{úroveň zabezpečení poskytovatele identit}  \\ \hline
 \texttt{sources.login (String)}     & \parbox[t]{6cm}{identifikátor uživatele u daného poskytovatele identit} \\ \hline
-\texttt{member\_id (int)}           & zeptat se Miloše \\ \hline
+\texttt{member\_id (int)}           & idetifikátor ve virtuální organizaci shongo \\ \hline
 \texttt{member\_status (String)}    & zeptat se Miloše \\ \hline
 \texttt{\_links.self.href (String)} & \parbox[t]{6cm}{URL adresa aktuálního HTTP GET požadavku} \\ \hline
 
