@@ -145,6 +145,7 @@ Stávající autentizační a autorizační vrstva webkonferenční infrastruktu
 Představená autentizační a autorizační infrastruktura využívající systémy Shibboleth a Perun je implementována na serveru \texttt{shongo-auth.cesnet.cz}. Je důležité poznamenat, že tento server funguje jako OpenID Connect poskytovatel pro webkonferenční služby \texttt{meetings.cesnet.cz} a Adobe Connect. Zároveň zmíněný server slouží jako klient pro OpenID Connect Proxy IdP v infrastruktuře CESNETu. Uvedený server tedy odbavuje požadavky uživatelů na přihlášení do webkonferenčních systémů \texttt{meetings.cesnet.cz} a Adobe Connect. Po úspěšné autentizaci je uživatel přesměrován na požadované portály. Abychom pochopily změny provedené ve stávající autentizační a autorizační infrastruktuře, je vhodné si detailně představit, jakým způsobem se zpracovávají požadavky na autentizaci uživatelů při přihlašování do zmíněných webkonferenčních systémů.  
 
 \subsection{Autentizační vrstva systému Adobe Connect}
+\label{ac-old}
 Jak už bylo zmíněno, webkonferenční platforma Adobe Connect využívá k autentizaci a
 autorizaci systém Shibboleth. V rámci procesu autentizace si Adobe Connect udržuje interní databázi, ve které si eviduje uživatele. V
 uvedené databázi si uchovává informace o uživatelích,
@@ -324,6 +325,7 @@ V této kapitole seznamuji s detailním postupem při implementaci a instalaci n
 
 
 \section{Instalace a konfigurace Apache modulu pro OpenID Connect}
+\label{apacheInstall}
 V této kapitole popisuji instalaci a konfiguraci Apache modulu pro OpenID Connect. Dále se věnuji registraci klienta \texttt{shongo-auth.cesnet.cz} do ProxyIdP infrastruktury CESNETu. Zmíněné operace byly provedeny podle pokynů dostupných v prezentaci prezentované na dnech s Perunem \cite{oidcConfigPresentation}.
 
 \label{apacheConfig}
@@ -399,9 +401,10 @@ První představená URL adresa \texttt{/oidc-authn/oic/authn/oidc} je mapována
 \label{ACImpl}
 V této sekci se zabývám popisem implementace, kterou bylo nutné provézt při integraci stávající autentizační a autorizační vrstvy systému Adobe Connect s OpenID Connect Proxy IdP provozované sdružením CESNET. 
 \par 
-Je důležité připomenou, ústřední prvky stávající implementace. V stávající implementaci jsou uživatelské atributy po autentizaci prostřednictvím systému Shibboleth mapovány na objekt představujícího uživatele. Jelikož je systém Shibboleth nahrazen za OpenID Connect poskytovatele, klíčovým prvkem implementace je přemapování zmíněných uživatelských atributů. Jde o atributy, které po autentizaci u OpenID Connect poskytovatele zprostředkuje nainstalovaný modul Apache \textbf{mod\_auth\_openidc}. 
+Pro pochopení provedených změn je důležité připomenou ústřední prvky stávající implementace. V stávající implementaci jsou uživatelské atributy po autentizaci prostřednictvím systému Shibboleth mapovány na objekt představujícího uživatele. Dále je důležité zmínit, že jednou z hlavní částí této diplomové práce je nahrazení autentizačního systému Shibboleth za implementaci protokolu OpenID Connect. Jelikož autentizační modul Apache \textbf{mod\_auth\_openidc} zprostředkuje atributy autentizovaného uživatele odlišným způsobem než aktuální konfigurace sytému Shibboleth, bylo klíčové zajistit přemapování zmíněných uživatelských atributů. Popis konfigurace a instalace zmíněného modulu \textbf{mod\_auth\_openidc} je představen v kapitole \hyperref[apacheInstall]{4.1}.  
+\par
 
-První změnou byla editace konfiguračního souboru \texttt{config/connect.ini}. Tento soubor zajišťuje mapování získaných uživatelských atributů z proměnných prostředí Apache serveru po autentizaci. Následující výňatek konfiguračního souboru popisuje nové mapování uživatelských atributů do proměnných autentizačního algoritmu. 
+Popsané přemapování uživatelských atributů bylo provedeno v konfiguračním souboru \texttt{config/connect.ini} autentizační a autorizační vrstvy. Následující výňatek konfiguračního souboru popisuje nové mapování uživatelských atributů do proměnných autentizačního algoritmu. 
 
 \begin{lstlisting}[
     basicstyle=\footnotesize\ttfamily,
@@ -419,13 +422,18 @@ mail_field = OIDC_CLAIM_email
 givenName_field = OIDC_CLAIM_given_name
 sn_field = OIDC_CLAIM_family_name
 \end{lstlisting}
-První řádek výňatku mapuje unikátní identifikátor einfra id, druhý řádek seznam obsahující \textbf{eduPersonPrincipalName}, další řádek emailovou adresu, předposlední řádek jméno a poslední řádek příjmení uživatele. Uvedené atributy jsou nastaveny objektu představujícího uživatele s kterým se dál v algoritmu pracuje. \par 
-TODO rozepsat a propojit predchozi odstavec s nasledujicim
-Další důležitá změna byla provedena v hlavním souboru celého autentizačního algoritmu \texttt{lib/AcLogin/Application.php}. Zde byla přidána metoda \texttt{\_getExistingUserIdByEppns}, která ze všech \textbf{eduPersonPrincipalName} přihlašovaného uživatele najde takový identifikátor uživatele, který již v interní databázi Adobe Connect existuje. Důvodem přidání představené metody je fakt, že získaný \textbf{ OIDC\_CLAIM\_eppns}  obsahuje textový řetězec se všemi \textbf{eduPersonPrincipalName} uživatele. Pokud metoda \texttt{\_getExistingUserIdByEppns} nenajde uživatele v interní databázi Adobe Connect, vytvoří algoritmus záznam v databázi z prvního \textbf{eduPersonPrincipalName}. Dále již běh algoritmu pokračuje obdobně jako ve stávající implementaci. \par 
-Nová URL adresa určená pro zpracování autentizačních požadavků do webkonferenčního systému Adobe Connect má tedy formát \texttt{https://shongo-auth.cesnet.cz/oidc-ac/instance/connect format}.
+První řádek výňatku mapuje unikátní identifikátor einfra id, druhý řádek seznam obsahující \textbf{eduPersonPrincipalName}, další řádek emailovou adresu, předposlední řádek jméno a poslední řádek příjmení uživatele. Atribut \textbf{eppns\_field} značí uživatelské identifikátory v jednotlivých organizacích, kterých je uživatel členem. Uvedené atributy jsou v autentizačním algoritmu nastaveny objektu představujícího uživatele. 
+\par 
+
+Se zmíněným objektem představujícího přihlašovaného uživatele se dále pracuje, tak jako ve stávající implementaci. To znamená že je provedena kontrola, zda uživatel již existuje v interní databázi webkonferenčního systému Adobe Connect. Protože ve stávající implementaci atribut \textbf{eppns\_field} obsahoval pouze jedno \textbf{eduPersonPrincipalName}, kontrolovala se existence pouze jednoho přítomného identifikátoru v databázi. Detailní popis představeného procesu kontroly existence uživatele v databázi ve stávající implementaci autentizační a autorizační vrstvy systému Adobe Connect je uveden v kapitole \hyperref[ac-old]{2.1.1}. V nové implementaci musela být provedena kontrola existence uživatelského identifikátoru \textbf{eduPersonPrincipalName} odlišným způsobem. Příčinou této změny je fakt, že do atributu \textbf{eppns\_field} je nově mapován seznam několika \textbf{eduPersonPrincipalName} místo jediného uživatelského identifikátoru.
+\par
+Z popisovaného důvodu z předchozího odstavce byla do autentizačního algoritmu přidána metoda \texttt{\_getExistingUserIdByEppns}. Tato metoda najde ze seznamu všech \textbf{eppns\_field} takový identifikátor uživatele, který již v interní databázi Adobe Connect existuje. Pokud metoda \texttt{\_getExistingUserIdByEppns} nenajde žádného uživatele v interní databázi Adobe Connect, vytvoří algoritmus v databázi záznam představujícího uživatele. Zmíněný záznam, je primárně vytvořen z takového \textbf{eduPersonPrincipalName}, které představuje uživatelský identifikátor v rámci skupiny einfra. Popisované \textbf{eduPersonPrincipalName} identifikující uživatele v rámci einfra skupiny má formát \textbf{{uživatelský\_identifikátor}@einfra.cesnet.cz}. Důsledkem příslušnosti uživatele do skupiny einfra je tzv. \textbf{LoA} úrovně 2. \textbf{LoA\footnote{Level of Assurance RFC, \url{https://tools.ietf.org/html/rfc6711}} (Level of Assurance)} je úroveň záruky vyjadřující míru spolehlivosti prostředků pro
+elektronickou identifikaci při určování totožnosti dané osoby.   Pokud v krajním případě uživatel nepatří do skupiny einfra je v rámci nové implementace použit první uživatelský identifikátor ze seznamu \textbf{eduPersonPrincipalName}. Dále již běh algoritmu pokračuje obdobně jako ve stávající implementaci autentizační a autorizační vrstvy systému Adobe Conect, kterou popisuji v kapitole \hyperref[ac-old]{2.1.1}. 
+
 
 \par 
-V neposlední řadě, je důležité poznamenat, že nová implementace autorizační a autentizační vrstvy systému Adobe Connect byla přesunuta do adresáře \texttt{/app/oidc/}. Dále je důležité zmínit, že chráněná URL adresa definovaná v \hyperref[ac-location]{konfiguračním souboru} Apache je mapována právě na uvedený adresář \texttt{/app/oidc/}.
+V neposlední řadě, je důležité poznamenat, že nová implementace autorizační a autentizační vrstvy systému Adobe Connect byla přesunuta do adresáře \texttt{/app/oidc/}. Dále je důležité zmínit, že chráněná URL adresa definovaná v \hyperref[ac-location]{konfiguračním souboru} Apache je mapována právě na uvedený adresář \texttt{/app/oidc/}. Z toho plyne, že nová URL adresa určená pro zpracování autentizačních požadavků do webkonferenčního systému Adobe Connect má formát \texttt{https://shongo-auth.cesnet.cz/oidc-ac/instance/connect}.
+
 
 \section{Implementace autentizační a autorizační vrstvy systému meetings.cesnet.cz}
 \label{ShongoImpl}
