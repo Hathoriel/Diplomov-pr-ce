@@ -144,7 +144,7 @@ Stávající autentizační a autorizační vrstva webkonferenční infrastruktu
 
 Představená autentizační a autorizační infrastruktura využívající systémy Shibboleth a Perun je implementována na serveru \texttt{shongo-auth.cesnet.cz}. Je důležité poznamenat, že tento server funguje jako OpenID Connect poskytovatel pro webkonferenční služby \texttt{meetings.cesnet.cz} a Adobe Connect. Zároveň zmíněný server slouží jako klient pro OpenID Connect Proxy IdP v infrastruktuře CESNETu. Uvedený server tedy odbavuje požadavky uživatelů na přihlášení do webkonferenčních systémů \texttt{meetings.cesnet.cz} a Adobe Connect. Po úspěšné autentizaci je uživatel přesměrován na požadované portály. Abychom pochopily změny provedené ve stávající autentizační a autorizační infrastruktuře, je vhodné si detailně představit, jakým způsobem se zpracovávají požadavky na autentizaci uživatelů při přihlašování do zmíněných webkonferenčních systémů.  
 
-\subsection{Autentizační vrstva systému Adobe Connect}
+\subsection{Autentizační a autorizační vrstva systému Adobe Connect}
 \label{ac-old}
 Jak už bylo zmíněno, webkonferenční platforma Adobe Connect využívá k autentizaci a
 autorizaci systém Shibboleth. V rámci procesu autentizace si Adobe Connect udržuje interní databázi, ve které si eviduje uživatele. V
@@ -169,9 +169,9 @@ Po nastavení zmíněných uživatelských atributů do proměnné prostředí s
 
 Další fází v představovaném PHP skriptu je využití popisovaného Adobe Connect API objektu ke kontrole, zda uživatel, který se do systému přihlašuje již v interní databázi existuje. Představená kontrola existence uživatele se provede vůči jeho unikátnímu identifikátoru \textbf{eppn}. Pokud uživatel v databázi Adobe Connect neexistuje, je vytvořen a uložen do databáze. Jestliže uživatel v databázi existuje algoritmus pokračuje dále. Pokud je navíc povolena dodatečná aktualizace uživatelských údajů při přihlášení, aktualizují se uživatelovi údaje v databázi Adobe Connect. \par
 
-Po té následuje část zdrojového kódu, v které je provedeno samotné přihlášení uživatele uživatele pomocí unikátního identifikátoru \textbf{eppn} a generovaného hesla. Zmíněné heslo se generuje pomocí hašovací funkce MD5\footnote{Algoritmus hašovací funkce MD5, \url{www.tools.ietf.org/html/rfc1321}}, které se na vstup předá řetězec složený z \textbf{eppn} uživatele a náhodného neměnného řetězce, tzv. soli. Následuje kontrola úspěšnosti přihlášení a vytvoření řetězce sezení, tzv. \textbf{Session String}. Představený \textbf{Session String} jednoznačně identifikuje provedenou autentizaci. Pokud přihlášení proběhlo v pořádku, autentizovaný uživatel je s URL parametrem \textbf{Session String} přesměrován na svoji úvodní stránku webkonferečního systému Adobe Connect.      
+Po té následuje část zdrojového kódu, v které je provedeno samotné přihlášení uživatele uživatele pomocí unikátního identifikátoru \textbf{eppn} a generovaného hesla. Zmíněné heslo se generuje pomocí hašovací funkce MD5\footnote{MD5 RFC, \url{www.tools.ietf.org/html/rfc1321}}, které se na vstup předá řetězec složený z \textbf{eppn} uživatele a náhodného neměnného řetězce, tzv. soli. Následuje kontrola úspěšnosti přihlášení a vytvoření řetězce sezení, tzv. \textbf{Session String}. Představený \textbf{Session String} jednoznačně identifikuje provedenou autentizaci. Pokud přihlášení proběhlo v pořádku, autentizovaný uživatel je s URL parametrem \textbf{Session String} přesměrován na svoji úvodní stránku webkonferečního systému Adobe Connect.      
 
-\subsection{Autentizační vrstva systému meetings.cesnet.cz}
+\subsection{Autentizační a autorizační vrstva systému meetings.cesnet.cz}
 \label{meetings-old}
 Podobně jako autentizační vrstva systému Adobe Connect je i autentizační vrsrva rezervačního systému \texttt{meetings.cesnet.cz} implementována na serveru \texttt{shongo-auth.cesnet.cz}. Systém \texttt{meetings.cesnet.cz} využívá při přihlašování uživatelů jak Shibboleth, tak webovou službu Perun. Je důležité poznamenat, že autentizační vrstva systému \texttt{meetings.cesnet.cz} využívá moduly \textbf{shongo-authn-server} a \textbf{zf2-openid-connect-server-module} k zpracování autentizačních požadavků. Uvedené moduly se nacházejí v adresáři \texttt{/data/app/prod/shongo-authn-server/}. Ačkoliv se jedná o implementaci OpenID Connect na straně poskytovatele služeb, nejsou moduly napojeny na autorizační server OpenID Connect, ale pouze na systém Shibboleth v autentizační infrastruktuře CESNETu. \par
 
@@ -223,13 +223,13 @@ Z konzultací s vedoucím diplomové práce vyplynuly následující požadavky.
 Dalším požadavkem bylo, aby implementace byla z důvodu centralizace autentizanční a autorizační infrastruktury integrována do stávajícího serveru \texttt{shongo-auth.cesnet.cz}. V neposlední řadě bylo požadováno odstranění nepotřebného kódu po nevyužitých voláních webové služby Perun. Informace o přihlášeném uživateli, které byly dříve zprostředkovány voláním webové služby Perun musely být nově získány z autorizačního serveru poskytovatele OpenID Connect, který se nachází v infrastruktuře CESNETu.     
 
 
-\section{Návrh nové autentizační infrastruktury}
+\section{Návrh nové autentizační a autorizační infrastruktury}
 Zde se budu věnovat otázce, jakým způsobem je koncipován návrh nové autentizační a autorizační infrastruktury pro systémy Adobe Connect a Shongo. Společným prvkem pro oba zmíněné systémy je fakt, že návrh nové autentizační a autorizační architektury navazuje na architekturu stávající. 
 
-\subsection{Autentizační vrstva systému Adobe Connect}
+\subsection{Autentizační a autorizační vrstva systému Adobe Connect}
 Nová autentizační a autorizační vrstva webkonferenčního systému Adobe Connect bude využívat již existující implementaci a bude s ní úzce svázána. To znamená, že bude dodána implementace do stávajícího autentizačního serveru \texttt{shongo-authn.cesnet.cz}. Jak už bylo uvedeno výše, stávající autentizační a autorizační vrstva využívá systému Shibboleth, který bude v rámci této diplomové práce nahrazen implementací systému OpenID Connect. To znamená, že bude muset být systém OpenID Connect a moduly na straně autentizačního serveru \texttt{shongo-authn.cesnet.cz} do sebe vhodným způsobem integrovány. Tuto skutečnost dosáhneme řádnou instalací autentizačního modulu OpenID Connect webovéo serveru Apache na autentizační server. Dále musíme zajistit, aby došlo k přemapování atributů získaných po autentizaci uživatele. Implementaci zmíněného přemapování popisuji v kapitole \hyperref[ACImpl]{Implementace autentizačního a autorizačního modulu pro systém Adobe Connect}. 
 
-\subsection{Autentizační vrstva systému meetings.cesnet.cz}
+\subsection{Autentizační a autorizační vrstva systému meetings.cesnet.cz}
 Obdobně jako v případě systému Adobu Connect, bude nová implementace autorizace a autentizace uživatelů úzce propojena se stávající implementací. Jak už bylo zmíněno výše, stávající implementace se nachází na serveru \texttt{shongo-auth.cesnet.cz}. Analogicky bude muset být v rámci instalace Apache modulu OpenID Connect provedena konfigurace webového serveru. \par
 V další fázi bude na serveru \texttt{shongo-auth.cesnet.cz} následovat implementace procesu, který zajistí propojení s autorizačním serverem OpenID Connect. Uvedená implementace zaručí mapování nově získaných uživatelských dat do stávajícího mechanizmu autentizace a autorizace uživatele. Ta bude realizována pomocí nově vytvořeného datového konektoru OIDC. Je důležité poznamenat, že nová implementace autorizačního algoritmu zachová nezbytnou kontrolu příslušnosti uživatele do skupiny einfra. 
 \par
@@ -273,7 +273,7 @@ OpenID Connect 1.0 \footnote{Dokumentace OpenID Connect 1.0, \url{www.openid.net
 
 Hlavním rozšířením protokolu OpenID Connect oproti OAuth 2.0 umožňující autentizaci je definice nové datové struktury \textbf{ID Token}. Uvedený \textbf{ID Token} je bezpečnostní žeton, který obsahuje informace o autentizaci a případná další doplňková data koncového uživatele. Zmíněné informace nacházející se ve struktuře \textbf{ID Token} nazýváme v tomto kontextu \textbf{Claims}. Popisované \textbf{Claims} vždy nesou informace ve formátu dvojice název \textbf{Claim} a hodnota \textbf{Claim}. Představované \textbf{Claims}, které uchovávají informace o autentizované entitě, jsou ve struktuře \textbf{ID Token} zakódovány ve formátu \textbf{JWT} (JSON Web Token)\footnote{JSON Web Token RFC, \url{www.tools.ietf.org/html/rfc7519}}.    \par
 
-\textbf{JWT} je textový řetězec reprezentující \textbf{Claims} jako JSON objekt\footnote{JavaScript Object Notation RFC, \url{https://tools.ietf.org/html/rfc7159}} zakódovaný pomocí Base64\footnote{Base64 kódování, \url{www.tools.ietf.org/html/rfc4648}} kódování a HMAC s SHA-256\footnote{HMAC s SHA-256, \url{ www.tools.ietf.org/html/rfc4868}}.  Popisovaný \textbf{JWT} je standardně rozdělen na části hlavičku a tělo. Po aplikaci algoritmů Base64 a HMAC s SHA-256 na tyto dvě části se vytvoří výsledný řetězec. Konkrétní mechanizmus způsobu vytváření \textbf{JWT} je detailně popsán v \href{http://www.tools.ietf.org/html/rfc7519}{odkazovaném RFC 7519} . \par
+\textbf{JWT} je textový řetězec reprezentující \textbf{Claims} jako JSON objekt\footnote{JavaScript Object Notation RFC, \url{https://tools.ietf.org/html/rfc7159}} zakódovaný pomocí Base64\footnote{Base64 RFC, \url{www.tools.ietf.org/html/rfc4648}} kódování a HMAC s SHA-256\footnote{HMAC SHA-256 RFC, \url{ www.tools.ietf.org/html/rfc4868}}.  Popisovaný \textbf{JWT} je standardně rozdělen na části hlavičku a tělo. Po aplikaci algoritmů Base64 a HMAC s SHA-256 na tyto dvě části se vytvoří výsledný řetězec. Konkrétní mechanizmus způsobu vytváření \textbf{JWT} je detailně popsán v \href{http://www.tools.ietf.org/html/rfc7519}{odkazovaném RFC 7519} . \par
 
 Protokol OpenID Connect dále definuje jaké \textbf{Claims} musí struktura \textbf{ID Token} obsahovat:
 
@@ -443,17 +443,18 @@ V této kapitole se zabývám popisem postupu implementace při integraci stáva
 \label{ShongoImpl-authn}
 Zde se věnuji popisu implementace algoritmu, který zajišťuje autentizaci a autorizaci klienta \texttt{shongo-auth.cesnet.cz} vůči autorizačnímu serveru OpenID Connect v infrastruktuře CESNETu.  \par
 
-Jak vyplynulo ze zadání diplomové práce, klíčovou součástí implementace je vytvoření nové autentizační a autorizační vrstvy systému \texttt{meetings.cesnet.cz}. Jednou z hlavních částí zmíněné implementace je nahrazení stávajících autentizačních systémů Shibboleth a Perun za OpenID Connect poskytovatele.
+Jak vyplynulo ze zadání diplomové práce, klíčovou součástí implementace je vytvoření nové autentizační a autorizační vrstvy systému \texttt{meetings.cesnet.cz}. 
 
-\par
+\subsubsection{Autentizace}
 
+Jednou z hlavních částí zmíněné implementace je nahrazení stávajících autentizačních systémů Shibboleth a Perun za OpenID Connect poskytovatele.
 Je důležité zmínit, že o samotnou autentizaci uživatelů se stará konkrétní poskytovatel identit ve spolupráci s autorizačním server OpenID Connect. Delegování autentizace je jednou ze základních vlastností protokolu OpenID Connect a zprovoznění této funkcionality bylo dosaženo řádnou instalací Apache modulu \textbf{mod\_auth\_openidc} a registrací klienta \texttt{shongo-auth.cesnet.cz} do Proxy IdP infrastruktury CESNETu. Proto je autentizace přenechána těmto entitám a není již řešena na straně serveru \texttt{shongo-auth.cesnet.cz}. Uvedené řešení respektuje stávající architekturu která dříve obdobným způsobem využívala k autentizaci uživatelů systém Shibboleth. 
 
 \par 
 Dalším krokem vykonaným v rámci implementace nové autentizační a autorizační vrstvy bylo nahrazení funkcionality webové služby Perun.  
 Jelikož autentizační algoritmus na straně serveru \texttt{shongo-auth.cesnet.cz} počítá s uživatelskými atributy získanými ze systémů Shibboleth a Perun, muselo dojít k vhodnému přemapování těchto atributů. Systém Shibboleth poskytoval pouze podmnožinu uživatelských atributů, něž jakou poskytuje služba Perun, a tudíž stačilo v tomto kontextu nahradit pouze funkcionalitu zmiňované služby Perun. \par
 
-Jak již bylo uvedeno v popisu stávající autentizační a autorizační logiky systému \texttt{shongo-auth.cesnet.cz}, volání služby Perun se realizují v datovém konektoru PerunWS. Hlavní úkolem tohoto datového konektoru je získání a zpracování dat z webové služby Perun do objektu představujícího uživatele. Zmíněný datový konektor byl nahrazen novým datovým konektorem, který zpracovává uživatelské údaje po autentizaci prostřednictvím poskytovatele OpenID Connect. 
+Jak již bylo představeno v popisu stávající autentizační a autorizační logiky systému \texttt{shongo-auth.cesnet.cz}, volání služby Perun se realizují v datovém konektoru PerunWS. Hlavní úkolem tohoto datového konektoru je získání a zpracování dat z webové služby Perun do objektu představujícího uživatele. Zmíněný datový konektor byl nahrazen novým datovým konektorem, který zpracovává uživatelské údaje po autentizaci prostřednictvím poskytovatele OpenID Connect. 
 \par
 
 Jak již bylo uvedeno výše, nezbytnou fází implementace autentizace bylo vytvoření nového datového konektoru. Úkolem uvedeného datového konektoru je zpracování uživatelských atributů dostupných v globální proměnné prostředí \texttt{\$\_SERVER}. Je důležité zmínit, že uživatelské atributy jsou po autentizaci uživatele do proměnné \texttt{\$\_SERVER} zprostředkovány díky dříve nainstalovanému Apache modulu \textbf{mod\_auth\_openidc}. Abychom mohli představené uživatelské atributy zpracovat, byl vytvořen soubor \texttt{OIDC.php}, který reprezentuje zmíněný datový konektor. Vytvořený konektor \texttt{OIDC.php} plně nahrazuje konektor \texttt{PerunWS.php}, který v předcházející implementaci získával informace o přihlášeném uživateli pomocí webové služby Perun. Nově vytvořený konektor mapuje následující atributy v poli \texttt{\$\_SERVER} do objektu představujícího autentizovaného uživatele \texttt{ShongoAuthn\textbackslash User\textbackslash User}. 
@@ -468,18 +469,20 @@ Jak již bylo uvedeno výše, nezbytnou fází implementace autentizace bylo vyt
     \item \textbf{OIDC\_CLAIM\_organization} definuje hlavní organizaci ke které uživatel patří
     \item \textbf{OIDC\_CLAIM\_address} značí poštovní adresu uživatele,
     \item \textbf{OIDC\_CLAIM\_eppns} jsou unikátní identifikátory v rámci organizací, tzv. eduPersonPrincipalName, 
-    \item \textbf{OIDC\_CLAIM\_eduPersonEntitlement} obsahuje seznam skupin, kterých je uživatel členem a jsou na službu přiřazeny. 
+    \item \textbf{OIDC\_CLAIM\_eduPersonEntitlement} obsahuje seznam skupin, kterých je uživatel členem a jsou na službu přiřazeny,
+    \item \textbf{OIDC\_CLAIM\_iss} je identifikátor autorizačního serveru,
+    \item \textbf{OIDC\_CLAIM\_auth\_time} představuje časovou značku přihlášení uživatele, definovanou jako počet sekund uplynulých od okamžiku koordinovaného světového času (UTC) 00:00:00 1. ledna 1970.
 \end{itemize}
 
 Po nastavení objektu představujícího uživatele vypsanými atributy pokračuje autentizační algoritmus stejným způsobem jako v případě stávající implementace v kapitole \hyperref[meetings-old]{2.1.2}.
 
+
+\subsubsection{Autorizace}
+Další fází byla implementace autorizace, ve které bylo nutné zajistit kontrolu příslušnosti uživatele do skupiny einfra. Přítomnost uživatele ve skupině einfra zaručuje tzv. \textbf{LoA} úrovně dva. Jak již bylo uvedeno výše, \textbf{LoA (Level of Assurance)} je úroveň záruky vyjadřující míru spolehlivosti prostředků pro elektronickou identifikaci při určování totožnosti dané osoby. Opět v tomto kontextu \textbf{LoA} úrovně dva značí, že uživatel je schopný ověřit svoji identitu pomocí přihlašovacího hesla. Jde tedy o bezpečnostní záruku autorizační vrstvě systému \texttt{shongo-auth.cesnet.cz}, že se jedná řádně přihlášeného uživatele. Ve stávající implementaci bylo informace o příslušnosti uživatele do skupiny einfra zjišťována pomocí volání webové služby Perun. Jelikož nynější autorizační vrstva nevyužívá již volání webové služby Perun, musel být způsob představené kontroly příslušnosti uživatele do skupiny einfra nahrazen. 
+
 \par
 
-Další fází byla implementace autorizace, ve které bylo nutné zajistit kontrolu příslušnosti uživatele do skupiny einfra. Přítomnost uživatele ve skupině einfra zajišťuje tzv. \textbf{LoA} úrovně dva. Jak již bylo uvedeno výše, \textbf{LoA (Level of Assurance)} je úroveň záruky vyjadřující míru spolehlivosti prostředků pro elektronickou identifikaci při určování totožnosti dané osoby. Opět v tomto kontextu \textbf{LoA} úrovně dva značí, že uživatel je schopný ověřit svoji identitu pomocí přihlašovacího hesla. Jde tedy o bezpečnostní záruku autorizační vrstvě systému \texttt{shongo-auth.cesnet.cz}, že se jedná řádně přihlášeného uživatele. Ve stávající implementaci bylo informace o příslušnosti uživatele do skupiny einfra zjišťována pomocí volání webové služby Perun. Jelikož nynější autorizační vrstva nevyužívá již volání webové služby Perun, musel být způsob představené kontroly příslušnosti uživatele do skupiny einfra nahrazen. 
-
-\par
-
-V rámci implementace popsané autorizace jsem vytvořil validátor \texttt{OIDCUser.php}. Úkolem vytvořeného validátoru \texttt{OIDCUser.php} je kontrola, zda autentizovaný uživatel patří do skupiny einfra. Logika zmíněného validátoru spočívá v tom, že ověřuje zda je v seznamu skupin \textbf{OIDC\_CLAIM\_eduPersonEntitlement} do kterých uživatel patří přítomen řetězec \texttt{urn:geant:cesnet.cz:group:einfra:einfra\#perun.cesnet.cz}. Uvedený řetězec repreznentuje zmiňovanou skupinu einfra. Pokud uživatel do požadované skupiny patří, běh algoritmu pokračuje stejným způsobem jako v stávající implementaci, kterou popisuji v kapitole \hyperref[meetings-old]{2.1.2}. Pokud uživatel do skupiny einfra nepatří, je přesměrován na stránku ProxyIdP infrastruktury CESNET s registrací. Zde uživatel odsouhlasí přiřazení do skupiny einfra a dále je běh algoritmu obdobný jako ve stávající implementaci.     
+V rámci implementace popsané autorizace jsem vytvořil validátor \texttt{OIDCUser.php}. Úkolem vytvořeného validátoru \texttt{OIDCUser.php} je kontrola, zda autentizovaný uživatel patří do skupiny einfra. Logika zmíněného validátoru spočívá v tom, že ověřuje zda je v seznamu skupin \textbf{OIDC\_CLAIM\_eduPersonEntitlement} do kterých uživatel patří přítomen řetězec \texttt{urn:geant:cesnet.cz:group:einfra:einfra\#perun.cesnet.cz}. Uvedený řetězec reprezentuje zmiňovanou skupinu einfra. Pokud uživatel do požadované skupiny patří, běh algoritmu pokračuje stejným způsobem jako v stávající implementaci, který popisuji v kapitole \hyperref[meetings-old]{2.1.2}. Pokud uživatel do skupiny einfra nepatří, je přesměrován na stránku ProxyIdP infrastruktury CESNET s registrací. Zde uživatel odsouhlasí přiřazení do skupiny einfra. Dále jsou v obou případech nastaveny objektu představujícího uživatele dodatečné autentizační informace. Na základě těchto autentizačních informací je po přesměrování do systému \texttt{meetings.cesnet.cz} uživateli umožněno vytvářet rezervační požadavky. Jde o identifikátor autorizačního serveru, časová značka představující čas autentizace a pevně danou hodnotu \textbf{LoA} úrovně dva. Je vhodné připomenout, že jestliže je uživatel členem skupiny einfra, potom je mu garantováno \textbf{LoA} úrovně dva. Dále je běh algoritmu obdobný jako ve stávající implementaci a prohlížeč je tedy nakonec s vygenerovaným autorizačním kódem přesměrován na úvodní stránku přihlášeného uživatele systému \texttt{meetings.cesnet.cz}.
 
 \par
 
@@ -660,7 +663,10 @@ Výchozí část URL adresy, která slouží jako prefix URL adresy zajištujíc
 \printbibliography[title={Literatura}]
 
 \appendix %% Start the appendices.
-\chapter{Sémantika odpovědí webové služby Perun}
+
+
+\chapter{Sémantika odpovědí HTTP požadavků na webové služby Perun}
+
 \section{Získání uživatele}
 Následující údaje o uživateli jsou získány pomocí HTTP GET požadavku na URL adresu \texttt{https://shongo-auth.cesnet.cz/perun/users/\{perun id\}}
 \label{table:perunws:user}
@@ -681,15 +687,14 @@ Následující údaje o uživateli jsou získány pomocí HTTP GET požadavku na
 \texttt{sources.name (String)}      & název poskytovatele identit \\ \hline
 \texttt{sources.loa (int)}          & \parbox[t]{6cm}{úroveň zabezpečení poskytovatele identit}  \\ \hline
 \texttt{sources.login (String)}     & \parbox[t]{6cm}{identifikátor uživatele u daného poskytovatele identit} \\ \hline
-\texttt{member\_id (int)}           & idetifikátor ve virtuální organizaci \texttt{meetings.cesnet.cz} \\ \hline
-\texttt{member\_status (String)}    & zeptat se Miloše \\ \hline
+\texttt{member\_id (int)}           & \parbox[t]{6cm}{identifikátor ve virtuální organizaci \texttt{meetings.cesnet.cz}} \\ \hline
+\texttt{member\_status (String)}    & informace o stavu uživatele \\ \hline
 \texttt{\_links.self.href (String)} & \parbox[t]{6cm}{URL adresa aktuálního HTTP GET požadavku} \\ \hline
-
-
 \end{tabular}
 \end{table}
+
 \section{Získání skupiny}
-Následující údaje o skupině jsou získány pomocí HTTP GET požadavku na URL adresu \texttt{https://shongo-auth.cesnet.cz/perun/groups/\{group\_id\}}
+Následující údaje o skupině jsou získány pomocí HTTP GET požadavku na URL adresu \texttt{https://shongo-auth.cesnet.cz/perun/groups/\{group id\}}
 
 \label{table:perunws:group}
 \begin{table}[h]
@@ -708,4 +713,38 @@ Následující údaje o skupině jsou získány pomocí HTTP GET požadavku na U
 
 \end{tabular}
 \end{table}
+
+\chapter{Ilustrace OpenID Connect požadavků}
+V této části přílohy popisuji nově vytvořené rozhraní serveru \texttt{shongo-auth.cesnet.cz}, které umožňuje zpracovávat autentizační požadavky. Je důležité zmínit, že vytvořené rozhraní v autentizační a autorizační vrstvě respektuje specifikaci OpenID Connect.
+
+\section{Autentizace}
+Následuje příklad HTTP GET požadavku, který slouží k autentizaci uživatele do systému \texttt{meetings.cesnet.cz}.
+\begin{lstlisting}
+https://shongo-auth.cesnet.cz/oidc-authn/oic/authorize
+?client_id=meetings.cesnet.cz
+&redirect_uri=https://meetings.cesnet.cz/login
+&state=26a09e72f0ccc
+&scope=openid
+&response_type=code
+&prompt=login
+\end{lstlisting}
+\noindent
+Význam parametrů:
+
+
+
+\section{Token Endpoint}
+Zde ilustruji příklad HTTP POST požadavku, který slouží k získání id tokenu. 
+
+\begin{lstlisting}
+https://shongo-auth.cesnet.cz/authn/oic/token
+\end{lstlisting}
+
+\section{UserInfo Endpoint}
+Zde uvádím příklad HTTP GET požadavku, který slouží k získání uživatelských informací. 
+
+\begin{lstlisting}
+https://shongo-auth.cesnet.cz/oidc-authn/oic/userinfo
+\end{lstlisting}
+
 \end{document}
