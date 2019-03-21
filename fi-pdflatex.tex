@@ -79,6 +79,7 @@
 \usepackage{xcolor}
 \usepackage{bera}
 \usepackage{float}
+\usepackage{listingsutf8}
 
 \colorlet{punct}{red!60!black}
 \definecolor{background}{HTML}{EEEEEE}
@@ -122,7 +123,9 @@
   language=XML,
   morekeywords={Location},
   backgroundcolor=\color{background},
-  frame=lines
+  frame=lines,
+  inputencoding=utf8/latin2,
+  extendedchars=true
 }
 %\usepackage{floatrow} %% Putting captions above tables
 %\floatsetup[table]{capposition=top}
@@ -726,7 +729,7 @@ Následující údaje o skupině jsou získány pomocí HTTP GET požadavku na U
 \end{tabular}
 \end{table}
 
-\chapter{Ilustrace OpenID Connect požadavků}
+\chapter{Ilustrace OpenID Connect HTTP požadavků}
 V této části přílohy popisuji nově vytvořené rozhraní serveru \texttt{shongo-auth.cesnet.cz}, které umožňuje zpracovávat autentizační požadavky. Je důležité zmínit, že vytvořené rozhraní v autentizační a autorizační vrstvě respektuje specifikaci OpenID Connect. V kontextu uvedených příkladů, pojmy klient značí rezervační systém \texttt{meetings.cesnet.cz} a autorizační server představuje server \texttt{shongo-auth.cesnet.cz}.
 
 \section{Autentizace}
@@ -769,19 +772,79 @@ Význam parametrů v odpovědi:
 \begin{table}[H]
 \begin{tabular}{|l|l|}
 \hline
-\texttt{code}   & \parbox[t]{10.8cm}{Autorizační kód, který vygeneroval autorizační server, slouží k jednorázové výměně za Access nebo ID Token}  \\ \hline
-\texttt{state}  & \parbox[t]{10.8cm}{Stejná hodnota, jakou klient v tomto parametru definoval při autentizačním požadavku}  \\ \hline
+\texttt{code}   & \parbox[t]{10.8cm}{autorizační kód, který vygeneroval autorizační server, slouží k jednorázové výměně za Access nebo ID Token}  \\ \hline
+\texttt{state}  & \parbox[t]{10.8cm}{stejná hodnota, jakou klient v tomto parametru definoval při autentizačním požadavku}  \\ \hline
 \end{tabular}
 \end{table}
-
+\clearpage
 \section{Token Endpoint}
 Zde ilustruji příklad HTTP POST požadavku, který slouží k získání ID a Access tokenu. 
 \noindent
-Význam POST parametrů:
-Význam POST hlavičky: 
+
 \begin{lstlisting}
 https://shongo-auth.cesnet.cz/authn/oic/token
 \end{lstlisting}
+\noindent
+Parametry hlavičky: 
+
+\label{token:}
+\begin{table}[H]
+\begin{tabular}{|l|l|}
+\hline
+\parbox[t]{7cm}{\texttt{Authorization Basic \{Autentizační kód\}}} & \parbox[t]{4.8cm}{autentizace klienta pomocí autentizačního kódu}  \\ \hline
+\parbox[t]{7cm}{\texttt{Content-Type application/x-www-form-urlencoded}} & \parbox[t]{4.8cm}{specifikace typu POST požadavku}  \\ \hline
+\end{tabular}
+\end{table}
+
+\noindent
+POST parametry:
+\label{table:autentizace}
+\begin{table}[H]
+\begin{tabular}{|l|l|}
+\hline
+\texttt{redirect\_uri}   & \parbox[t]{9cm}{URL adresa, musí být identická s hodnotou definovanou při autentizačním požadavku}  \\ \hline
+\texttt{client\_id}  & \parbox[t]{9cm}{identifikace klienta}  \\ \hline
+\texttt{grant\_type}  & \parbox[t]{9cm}{musí být nastaveno na \texttt{authorization\_code} což značí způsob získání tokenu}  \\ \hline
+\texttt{code}  & \parbox[t]{9cm}{autorizační kód, získaný od autorizačního serveru}  \\ \hline
+\end{tabular}
+\end{table}
+
+\noindent
+Příklad POST parametrů:
+\begin{lstlisting}
+redirect_uri:https://meetings.cesnet.cz/login
+client_id:meetings.cesnet.cz
+grant_type:authorization_code
+code:39757a190fbe6aab7c168ddb3c40670fb1a75932
+\end{lstlisting}
+
+\noindent
+Příklad odpovědi požadavku:
+\begin{lstlisting}[language=json,firstnumber=1]
+{
+    "access_token": "d177e503e5da6946f5a9e6f5c5780573d9ed0ea8",
+    "token_type": "bearer",
+    "expires_in": 43200,
+    "refresh_token": "not set",
+    "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvc2hvbmdvLWF1dGguY2VzbmV0LmN6XC9vaWRjLWF1dGhuXC8iLCJzdWIiOiIzZTIxYzI5ZWMyYjk0MGMzMzM2YjgwYzUxNDFkZTRlNzliYTgyZjM2QGVpbmZyYS5jZXNuZXQuY3oiLCJhdWQiOiJzaG9uZ28tY2xpZW50LXdlYiIsImV4cCI6MTU1MzE4Njk0NiwiaWF0IjoxNTUzMTg2NjQ2LCJub25jZSI6bnVsbH0=.BveRgKxXuNVsAZRw2bPRnEf5Y+4HSVlijri38HLM40Q="
+}
+\end{lstlisting}
+
+\noindent
+Význam parametrů v odpovědi:
+\label{table:autentizace}
+\begin{table}[H]
+\begin{tabular}{|l|l|}
+\hline
+\texttt{access\_token}   & \parbox[t]{9cm}{\textbf{Access token}, umožňuje přístup k UserInfo Endpointu}  \\ \hline
+\texttt{token\_type}  & \parbox[t]{9cm}{typ získaného tokenu}  \\ \hline
+\texttt{expires\_in}  & \parbox[t]{9cm}{čas expirace tokenu v sekundách}  \\ \hline
+\texttt{refresh\_token}  & \parbox[t]{9cm}{refresh token, určený pro obnovení platnosti \textbf{Access Tokenu}}  \\ \hline
+\texttt{id\_token}  & \parbox[t]{9cm}{\textbf{ID Token}}  \\ \hline
+
+\end{tabular}
+\end{table}
+
 
 \section{UserInfo Endpoint}
 Zde uvádím příklad HTTP GET požadavku, který slouží k získání uživatelských informací. 
@@ -789,5 +852,77 @@ Zde uvádím příklad HTTP GET požadavku, který slouží k získání uživat
 \begin{lstlisting}
 https://shongo-auth.cesnet.cz/oidc-authn/oic/userinfo
 \end{lstlisting}
+
+\noindent
+Parametry hlavičky: 
+
+\label{token:}
+\begin{table}[H]
+\begin{tabular}{|l|l|}
+\hline
+\parbox[t]{7cm}{\texttt{Authorization Bearer \{Access Token\}}} & \parbox[t]{4.8cm}{autentizace klienta pomocí \textbf{Access Tokenu}}  \\ \hline
+\end{tabular}
+\end{table}
+
+
+\clearpage
+\noindent
+Příklad odpovědi ve formátu JSON:
+\begin{lstlisting}[language=json,firstnumber=1]
+{
+    "id": "3e21c29ec2b940c3336b80c5141de4e79ba82f36@einfra.cesnet.cz",
+    "original_id": "3e21c29ec2b940c3336b80c5141de4e79ba82f36@einfra.cesnet.cz",
+    "display_name": "Lukas Kotol",
+    "first_name": "Lukas",
+    "last_name": "Kotol",
+    "mail": "433265@mail.muni.cz",
+    "organization": "Masarykova univerzita",
+    "language": "cs",
+    "zoneinfo": "Europe/Prague",
+    "principal_names": [
+        "433265@muni.cz",
+        "740847938b9b7b88c940034c6b7696e8f00d9f5d@west-life.eu",
+        "3e21c29ec2b940c3336b80c5141de4e79ba82f36@einfra.cesnet.cz",
+        "107533160484586378901@google.extidp.cesnet.cz"
+    ],
+    "edu_person_entitlements": [
+        "urn:geant:cesnet.cz:group:sitola:multimedia#perun.cesnet.cz",
+        "urn:geant:cesnet.cz:group:einfra:einfra#perun.cesnet.cz",
+        "urn:geant:cesnet.cz:group:shongo#perun.cesnet.cz",
+        "urn:geant:cesnet.cz:group:zlamal_test#perun.cesnet.cz",
+        "urn:geant:cesnet.cz:group:sitola#perun.cesnet.cz",
+        "urn:geant:cesnet.cz:group:einfra#perun.cesnet.cz"
+    ],
+    "authn_provider": "https://login.cesnet.cz/oidc/",
+    "authn_instant": "1553188450",
+    "loa": 2
+}
+\end{lstlisting}
+
+\noindent
+Význam parametrů v odpovědi:
+\label{table:userinfo:resp}
+\begin{table}[H]
+\begin{tabular}{|l|l|}
+\hline
+\texttt{id}   & \parbox[t]{7cm}{}  \\ \hline
+\texttt{original\_id}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{display\_name}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{first\_name}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{last\_name}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{mail}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{organization}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{language}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{zoneinfo}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{principal\_names}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{edu\_person\_entitlements}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{authn\_provider}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{authn\_instant}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{loa}  & \parbox[t]{7cm}{}  \\ \hline
+
+\end{tabular}
+\end{table}
+
+
 
 \end{document}
