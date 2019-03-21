@@ -78,6 +78,7 @@
 \usepackage{hyperref}
 \usepackage{xcolor}
 \usepackage{bera}
+\usepackage{float}
 
 \colorlet{punct}{red!60!black}
 \definecolor{background}{HTML}{EEEEEE}
@@ -123,8 +124,8 @@
   backgroundcolor=\color{background},
   frame=lines
 }
-\usepackage{floatrow} %% Putting captions above tables
-\floatsetup[table]{capposition=top}
+%\usepackage{floatrow} %% Putting captions above tables
+%\floatsetup[table]{capposition=top}
 \begin{document}
 
 \chapter{Úvod}
@@ -179,11 +180,11 @@ Postup při přihlašování uživatele do systému \texttt{meetings.cesnet.cz} 
 \label{shongo:state}
 \begin{itemize}
     \item \textbf{client\_id} má hodnotu \texttt{meetings.cesnet.cz} a představuje identifikace klienta u autorizačního serveru,
-    \item \textbf{redirect\_url} URL adresa na kterou prohlížeč přesměrován po autentizaci, má hodnotu \texttt{https://meetings.cesnet.cz/login}, 
+    \item \textbf{redirect\_uri} URL adresa na kterou je prohlížeč přesměrován po autentizaci, má hodnotu \texttt{https://meetings.cesnet.cz/login}, 
     \item \textbf{state} hodnota sloužící k udržení stavu mezi přihlašovacím požadavkem a odpovědí na autentizaci, 
-    \item \textbf{scope} obsahuje hodnotu \textbf{openid}, která značí že se jedná autentizační požadavek respektující pravidla protokolu OpenID Connect,
+    \item \textbf{scope} obsahuje hodnotu \textbf{openid}, která značí že se jedná autentizační požadavek respektující specifikaci protokolu OpenID Connect,
     \item \textbf{response\_type} definuje způsob průběhu získávání tokenů, v popisovaném požadavku má hodnotu \textbf{code}, což značí že se jedná o tzv. Authorization Code Flow \footnote{OpenID Connect Authorization Code Flow \url{https://openid.net/specs/openid-connect-core-1_0.html\#CodeFlowAuth}},
-    \item \textbf{prompt} doplňková informace autorizačnímu serveru, požadující zobrazení autentizačního formuláře koncovému uživateli, i pokud je přihlášen. 
+    \item \textbf{prompt} dodatečná informace autorizačnímu serveru, požadující zobrazení autentizačního formuláře koncovému uživateli, i v případě že je uživatel přihlášen. 
 \end{itemize}
 
 
@@ -204,7 +205,7 @@ Po té se předá řízení algoritmu zpět do metody \texttt{dispatch} v tříd
 
 Na základě HTTP GET požadavku s přiloženým \textbf{Authorize code} je po té autentizovanému klientu, našem případě službě \texttt{meetings.cesnet.cz}, vydán  \textbf{Access Token}. Zdroj poskytující \textbf{Access Token}, tzv. \textbf{Token Endpoint} je přítomný na URL adrese \texttt{shongo-auth.cesnet.cz/authn/oic/token}. \par 
 
-Obdobně jsou autentizovanému klientu poskytnuty dodatečné uživatelské údaje na základě přiloženého \textbf{Authorize code}. Zdroj který popisované uživatelské údaje drží, tzv. \textbf{UserInfo Endpoint} je dostupný na URL adrese \texttt{shongo-auth.cesnet.cz/authn/oic/userinfo}.  \par 
+Obdobně jsou autentizovanému klientu poskytnuty dodatečné uživatelské údaje na základě přiloženého \textbf{Access Tokenu}. Zdroj který popisované uživatelské údaje drží, tzv. \textbf{UserInfo Endpoint} je dostupný na URL adrese \texttt{shongo-auth.cesnet.cz/authn/oic/userinfo}.  \par 
 
 Následující \hyperref[fig:shongoAuthnProcess]{diagram} znázorňuje přehlednou formou výše popsané procesy v stávající autentizační a autorizační vrstvě systému Shongo nasazeném na portálu \texttt{meetings.cesnet.cz}. 
 
@@ -297,9 +298,11 @@ Následující obrázek \hyperref[fig:oidc]{3.2} popisuje s použitím dříve d
 \end{figure}
 \par 
 
-V první fázi (A) pošle \textbf{Relying Party} autentizační požadavek autorizačnímu serveru \textbf{OpenId Provider}. V dalším kroku (B) \textbf{OP} autentizuje koncového uživatele a provede autorizaci. V třetí fázi (C) odpoví autorizační server \textbf{OP} na požadavek informací o výsledku autentizace spolu s žetony \textbf{ID Token} a \textbf{Access Token}. V dalším kroku (D) \textbf{RP} může pomocí \textbf{Access Tokenu} poslat \textbf{OP} požadavek na získání uživatelských dat. Nakonec poslední fází (E) komunikačního schématu je odpověď \textbf{OP} s \textbf{Claims} obsahující uživatelská data, které si v předchozím kroku \textbf{RP} vyžádal. \par
+V první fázi (A) pošle \textbf{Relying Party} autentizační požadavek autorizačnímu serveru \textbf{OpenId Provider}. V dalším kroku (B) \textbf{OP} autentizuje koncového uživatele a provede autorizaci. V třetí fázi (C) odpoví autorizační server \textbf{OP} na požadavek informací o výsledku autentizace spolu s žetony \textbf{ID Token} a \textbf{Access Token}. V dalším kroku (D) \textbf{RP} může pomocí \textbf{Access Tokenu} poslat \textbf{OP} požadavek na získání uživatelských dat. Nakonec poslední fází (E) komunikačního schématu je odpověď \textbf{OP} s \textbf{Claims} obsahující uživatelská data, které si v předchozím kroku \textbf{RP} vyžádal. 
+\par
 
-V předchozím odstavci je zmíněna předposlední fáze \textbf{D} ve které \textbf{RP} po autentizaci posílá požadavek \textbf{OP} na získání dat o uživateli. Zdroj, který tyto informace uchovává se nazývá \textbf{UserInfo Endpoint}. Představovaný \textbf{UserInfo Endpoint} je chráněná URL adresa, která akceptuje HTTP požadavky pouze s přiloženým validním \textbf{Access Tokenem} získaným při autentizaci. Formát odpovědi na tyto dotazy se nastavuje při registraci \textbf{OpenID Providera}.  \par
+V předchozím odstavci je zmíněna předposlední fáze \textbf{D} ve které \textbf{RP} po autentizaci posílá požadavek \textbf{OP} na získání dat o uživateli. Zdroj, který tyto informace uchovává se nazývá \textbf{UserInfo Endpoint}. Představovaný \textbf{UserInfo Endpoint} je chráněná URL adresa, která akceptuje HTTP požadavky pouze s přiloženým validním \textbf{Access Tokenem}. Formát odpovědi a požadované \textbf{Claims}, které \textbf{UserInfo Endpoint} poskytuje se nastavují při registraci \textbf{OpenID Providera}. 
+\par
 
 Jak už bylo zmíněno v sekci která se věnuje popisu stávající implementace systému \texttt{meetings.cesnet.cz}, proces autentizace a autorizace je řízen pomocí tzv. Authorization Code flow. Tento způsob získání \textbf{ID Tokenu} a \textbf{Access Tokenu} vkládá do popisovaného komunikačního schématu v protokolu OpenID Connect další fázi. Místo zmíněných žetonů je v kroku (C) autorizačním serverem \textbf{OP} vrácen vygenerovaný textový řetězec tzv. \textbf{Authorize code}. Tento \textbf{Authorize code} je v následujícím kroku vyměněn za požadované žetony \textbf{ID Token} a \textbf{Access Token}. Podobně jako v případě \textbf{UserInfo Endpoint}, chráněný zdroj na straně autorizačního serveru \textbf{OP}, který poskytuje žetony na základě validace \textbf{Authorize code} se nazývá \textbf{Token Endpoint}.
 
@@ -482,7 +485,7 @@ Další fází byla implementace autorizace, ve které bylo nutné zajistit kont
 
 \par
 
-V rámci implementace popsané autorizace jsem vytvořil validátor \texttt{OIDCUser.php}. Úkolem vytvořeného validátoru \texttt{OIDCUser.php} je kontrola, zda autentizovaný uživatel patří do skupiny einfra. Logika zmíněného validátoru spočívá v tom, že ověřuje zda je v seznamu skupin \textbf{OIDC\_CLAIM\_eduPersonEntitlement} do kterých uživatel patří přítomen řetězec \texttt{urn:geant:cesnet.cz:group:einfra:einfra\#perun.cesnet.cz}. Uvedený řetězec reprezentuje zmiňovanou skupinu einfra. Pokud uživatel do požadované skupiny patří, běh algoritmu pokračuje stejným způsobem jako v stávající implementaci, který popisuji v kapitole \hyperref[meetings-old]{2.1.2}. Pokud uživatel do skupiny einfra nepatří, je přesměrován na stránku ProxyIdP infrastruktury CESNET s registrací. Zde uživatel odsouhlasí přiřazení do skupiny einfra. Dále jsou v obou případech nastaveny objektu představujícího uživatele dodatečné autentizační informace. Na základě těchto autentizačních informací je po přesměrování do systému \texttt{meetings.cesnet.cz} uživateli umožněno vytvářet rezervační požadavky. Jde o identifikátor autorizačního serveru, časová značka představující čas autentizace a pevně danou hodnotu \textbf{LoA} úrovně dva. Je vhodné připomenout, že jestliže je uživatel členem skupiny einfra, potom je mu garantováno \textbf{LoA} úrovně dva. Dále je běh algoritmu obdobný jako ve stávající implementaci a prohlížeč je tedy nakonec s vygenerovaným autorizačním kódem přesměrován na úvodní stránku přihlášeného uživatele systému \texttt{meetings.cesnet.cz}.
+V rámci implementace představené autorizace jsem vytvořil validátor \texttt{OIDCUser.php}. Úkolem vytvořeného validátoru \texttt{OIDCUser.php} je kontrola, zda autentizovaný uživatel patří do skupiny einfra. Logika zmíněného validátoru je založena na algoritmu, který ověřuje zda je v seznamu skupin \textbf{OIDC\_CLAIM\_eduPersonEntitlement} do kterých uživatel patří přítomen řetězec \texttt{urn:geant:cesnet.cz:group:einfra:einfra\#perun.cesnet.cz}. Uvedený řetězec reprezentuje zmiňovanou skupinu einfra. Pokud uživatel do požadované skupiny patří, běh algoritmu pokračuje stejným způsobem jako v stávající implementaci, který popisuji v kapitole \hyperref[meetings-old]{2.1.2}. Pokud uživatel do skupiny einfra nepatří, je přesměrován na stránku ProxyIdP infrastruktury CESNET s registrací. Zde uživatel odsouhlasí přiřazení do skupiny einfra. Dále jsou v obou případech nastaveny objektu představujícího uživatele dodatečné autentizační informace. Na základě těchto autentizačních informací je po přesměrování do systému \texttt{meetings.cesnet.cz} uživateli umožněno vytvářet rezervační požadavky. Jde o identifikátor autorizačního serveru, časová značka představující čas autentizace a pevně danou hodnotu \textbf{LoA} úrovně dva. Je vhodné připomenout, že jestliže je uživatel členem skupiny einfra, potom je mu garantováno \textbf{LoA} úrovně dva. Dále je běh algoritmu obdobný jako ve stávající implementaci a prohlížeč je tedy nakonec s vygenerovaným autorizačním kódem přesměrován na úvodní stránku přihlášeného uživatele systému \texttt{meetings.cesnet.cz}.
 
 \par
 
@@ -500,7 +503,7 @@ Na závěr této kapitoly je důležité zmínit, že v rámci implementace byla
 V následujících odstavcích se zabývám popisem modifikací databáze, kterou rezervační systém \texttt{meetings.cesnet.cz} využívá pro svůj provoz. Před samotným popisem zpracování a uložení uživatelských dat získaných ze služby Perun je vhodné připomenout následující výrazy. Jde o výrazy, které  jednoznačně identifikují uživatele. První z nich je identifikátor \textbf{perun id}, který jednoznačně identifikuje uživatele v rámci webové služby Perun. Další identifikátor, tzv. \textbf{einfra id} identifikuje uživatele v rámci Proxy IdP infrastruktury provozované sdružením CESNET.  
 \par
 
-Je důležité poznamenat, že autorizační server OpenID Connect neumožňuje získat uživatelský identifikátor \textbf{perun id} prostřednictvím \textbf{Claims}. Bohužel systém \texttt{meetings.cesnet.cz} s tímto identifikátorem \textbf{perun id} pracuje, a proto byla nutná náhrada zmíněného identifikátoru za \textbf{einfra id}. Zmíněné náhradě identifikátorů předcházela modifikace databázového schématu, protože nový identifikátor \textbf{einfra id} by překračoval maximální povolenou délku sloupce vyhrazenou pro \textbf{perun id}. Uvedený sloupec s uživatelským identifikátorem se používal v tabulkách \textbf{person}, \textbf{user\_settings}, \textbf{resource}, \textbf{acl\_identity} a \textbf{abstract\_reservation\_request}. Jelikož je databázové schéma definované pomocí technologie Hibernate, došlo ke změně délky sloupce jak na straně databáze, tak na straně třídy definující vlastnosti používaných tabulek. 
+Je důležité poznamenat, že autorizační server OpenID Connect neumožňuje získat uživatelský identifikátor \textbf{perun id} prostřednictvím \textbf{Claims}. Bohužel systém \texttt{meetings.cesnet.cz} s tímto identifikátorem \textbf{perun id} pracuje, a proto byla nutná náhrada zmíněného identifikátoru za \textbf{einfra id}. Zmíněné náhradě identifikátorů předcházela modifikace databázového schématu, protože nový identifikátor \textbf{einfra id} by překračoval maximální povolenou délku sloupce vyhrazenou pro \textbf{perun id}. Uvedený sloupec s uživatelským identifikátorem se používal v tabulkách \textbf{person}, \textbf{user\_settings}, \textbf{resource}, \textbf{acl\_identity}, \textbf{reservation} a \textbf{abstract\_reservation\_request}. Jelikož je databázové schéma definované pomocí technologie Hibernate, došlo ke změně délky sloupce jak na straně databáze, tak na straně třídy definující vlastnosti používaných tabulek. 
 \par  
 Na straně zdrojového kódu jsem provedl změnu délky sloupce v souboru \texttt{cz/cesnet/shongo/controller/api/Controller.java}. Uvedená změna se týkala proměnné \texttt{USER\_ID\_COLUMN\_LENGTH}, která definuje délku sloupce. Sloupec je typu VARCHAR a byl změněn z délky 32 na 255. Dále byla provedena změna délky sloupce v databázových tabulkách pomocí následujícího SQL příkazu.
 
@@ -517,10 +520,10 @@ ALTER COLUMN {nazev_sloupce}
 TYPE VARCHAR (255);
 \end{lstlisting}
 
-Další fází modifikace stávající databáze bylo již samotné nahrazení identifikátoru \textbf{perun id} za \textbf{einfra id} v tabulkách \textbf{person}, \textbf{user\_settings}, \textbf{resource}, \textbf{acl\_identity} a \textbf{abstract\_reservation\_request}. V rámci zmíněné modifikace byly doplněny i dodatečné údaje o uživateli v držené tabulkách \textbf{person} a \textbf{user\_settings}. Jde o údaje o uživatelově jménu, emailové adrese, organizaci, preferovaném jazyku a časové zóně, které byly dříve získávány pomocí webové služby Perun. Tato služba se v nové implementaci již nepoužívá a proto musely být představené údaje pro všechny stávající uživatele v systému \texttt{meetings.cesnet.cz} uloženy do databáze. Výhodou je, že tabulky obsahují požadované sloupce, protože se s zmíněnými uživatelskými údaji již pracovalo při správě tzv. anonymních uživatelů, což jsou uživatelé, kteří nepatří do skupiny einfra. 
+Další fází modifikace stávající databáze bylo již samotné nahrazení identifikátoru \textbf{perun id} za \textbf{einfra id} v tabulkách \textbf{person}, \textbf{user\_settings}, \textbf{resource}, \textbf{acl\_identity}, \textbf{reservation} a \textbf{abstract\_reservation\_request}. V rámci zmíněné modifikace byly doplněny i dodatečné údaje o uživateli v držené tabulkách \textbf{person} a \textbf{user\_settings}. Jde o údaje o uživatelově jménu, emailové adrese, organizaci, preferovaném jazyku a časové zóně, které byly dříve získávány pomocí webové služby Perun. Tato služba se v nové implementaci již nepoužívá a proto musely být představené údaje pro všechny stávající uživatele v systému \texttt{meetings.cesnet.cz} uloženy do databáze. Výhodou je, že tabulky obsahují požadované sloupce, protože se s zmíněnými uživatelskými údaji již pracovalo při správě tzv. anonymních uživatelů, což jsou uživatelé, kteří nepatří do skupiny einfra. 
 \par
 
-Algoritmus, který popisované modifikace provedl jsem implementoval v jazyce Java a obsahuje následující kroky pro každou z tabulek \textbf{person}, \textbf{user\_settings}, \textbf{resource}, \textbf{acl\_identity} a \textbf{abstract\_reservation\_request}. Počáteční fází bylo získání všech záznamů s uživatelskými identifikátory \textbf{perun id} z dotyčné tabulky. V dalším kroku byl pro každý záznam s identifikátorem \textbf{perun id} vytvořen GET požadavek na rozhraní webové služby Perun, které je přítomno na URL adrese \texttt{https://shongo-auth.cesnet.cz/perun/users/\{perun id\}}. Uvedený dotaz na API služby Perun vrátí požadované informace o uživateli ve formátu JSON s následující strukturou.
+Algoritmus, který popisované modifikace provedl jsem implementoval v jazyce Java a obsahuje následující kroky pro každou z tabulek \textbf{person}, \textbf{user\_settings}, \textbf{resource}, \textbf{acl\_identity}, \textbf{reservation} a \textbf{abstract\_reservation\_request}. Počáteční fází bylo získání všech záznamů s uživatelskými identifikátory \textbf{perun id} z dotyčné tabulky. V dalším kroku byl pro každý záznam s identifikátorem \textbf{perun id} vytvořen GET požadavek na rozhraní webové služby Perun, které je přítomno na URL adrese \texttt{https://shongo-auth.cesnet.cz/perun/users/\{perun id\}}. Uvedený dotaz na API služby Perun vrátí požadované informace o uživateli ve formátu JSON s následující strukturou.
 \begin{lstlisting}[language=json,firstnumber=1]
 {
     "id": {id},
@@ -604,17 +607,26 @@ locale = {locale},
 WHERE id = {id};
 \end{lstlisting}
 
-Pomocí spuštění uvedených dotazů, byly uloženy uživatelské údaje pro každého uživatele do tabulek \textbf{person} a \textbf{user\_settings}. Dále již stačilo vhodným způsobem modifikovat rezervační systém \texttt{meetings.cesnet.cz} k tomu, aby využíval uložená uživatelská data a nebyl závislý na webové službě Perun. Zmíněnou adaptaci systému \texttt{meetings.cesnet.cz} na provedené uložení uživatelských informací popisuji v kapitole \hyperref[ShongoImpl-web]{4.3.3}. 
+Pomocí spuštění uvedených dotazů, byly uloženy uživatelské údaje pro každého uživatele do tabulek \textbf{person} a \textbf{user\_settings}. Dále již stačilo vhodným způsobem modifikovat rezervační systém \texttt{meetings.cesnet.cz} k tomu, aby využíval uložená uživatelská data a nebyl závislý na webové službě Perun. Zmíněnou adaptaci systému \texttt{meetings.cesnet.cz} na provedené změny v rámci implementace nové autentizační a autorizační vrstvy popisuji v kapitole \hyperref[ShongoImpl-web]{4.3.3}. 
 
 \par
-Je důležité poznamenat, že při vytváření rezervačních požadavků se v systému \texttt{meetings.cesnet.cz} kontroluje, zda je uživateli umožněno tyto operace provádět. Zmíněná kontrola se realizuje vůči příslušnosti uživatele do skupin TODO - které skupiny. Ve stávající implementaci byla uvedená kontrola uskutečňována prostřednictvím webové služby Perun. Voláním služby Perun si systém \texttt{meetings.cesnet.cz} získal skupiny, do kterých uživatel patří. Konkrétně šlo o identifikátor dané skupiny, tzv. \textbf{group id}. Kontrola, zda je umožněno uživatelovi rezervovat požadované zdroje potom probíhala vůči získaným \textbf{group id} skupin z webové služby Perun, jejichž \textbf{group id} se nachází v databázi systému \texttt{meeting.cesnet.cz}. Na základě této informace bylo dále umožněno rezervovat kapacity ve vybraných místností. Jelikož nová implementace autentizační a autorizační vrstvy systému \texttt{meetings.cesnet.cz} již není závislá na webové službě Perun, musela být prováděná kontrola nahrazena. 
+Je důležité poznamenat, že při vytváření speciálních rezervačních požadavků se v systému \texttt{meetings.cesnet.cz} kontroluje, zda je uživatel oprávněn tyto operace provádět. Jde o specifické zdroje, určené pro uživatele v konkrétních skupinách. Zmíněná kontrola oprávnění vytvářet požadavky na specifické zdroje se realizuje vůči příslušnosti uživatele do skupin s následujícím URN. 
+\begin{itemize}
+    \item urn:geant:cesnet.cz:group:einfra:projects:shongo:users:cesnet\#perun.cesnet.cz
+    \item urn:geant:cesnet.cz:group:einfra:projects:shongo:users:ufe\#perun.cesnet.cz
+    \item urn:geant:cesnet.cz:group:einfra:projects:shongo:users:uvt\#perun.cesnet.cz
+    \item urn:geant:cesnet.cz:group:einfra:projects:shongo:system:admins\#perun.cesnet.cz
+    \item urn:geant:cesnet.cz:group:einfra:projects:shongo:users:shongo\#perun.cesnet.cz
+\end{itemize}
+
+Ve stávající implementaci byla uvedená kontrola uskutečňována prostřednictvím webové služby Perun. Voláním služby Perun si systém \texttt{meetings.cesnet.cz} získal skupiny, do kterých uživatel patří. Konkrétně šlo o identifikátor dané skupiny, tzv. \textbf{group id}. Kontrola, zda je umožněno uživatelovi rezervovat specifické zdroje potom probíhala vůči získaným \textbf{group id} skupin z webové služby Perun, jejichž \textbf{group id} se nachází v databázi systému \texttt{meeting.cesnet.cz}. Na základě této informace bylo dále umožněno rezervovat kapacity ve vybraných místností. Jelikož nová implementace autentizační a autorizační vrstvy systému \texttt{meetings.cesnet.cz} již není závislá na webové službě Perun, musela být prováděná kontrola nahrazena jiným mechanizmem. 
 
 \par
 První část modifikace představené kontroly skupin uživatele sestávala z nahrazení \textbf{group id} všech skupin uložených v databázi systému \texttt{meetings.cesnet.cz} za URN\footnote{URN RFC, \url{https://tools.ietf.org/html/rfc2141}} dotyčné skupiny. Uvedené URN (Uniform Resource Name) je textový řetězec, který se používá k jednoznačné identifikaci obecného zdroje. Důvodem nahrazení identifikátoru skupiny za URN je fakt, že infrastruktura Proxy IdP sdružení CESNET v \textbf{Claims} neposkytuje \textbf{group id}, ale pouze URN skupin, kterých je uživatel členem. 
 
 \par 
 
-Tabulka, které se zmiňované nahrazení identifikátoru \textbf{group id} za URN týká se nazývá \textbf{acl\_identity}. Uvedená tabulka má sloupce \textbf{id}, \textbf{principal\_id} a \textbf{type} ve kterých si drží své záznamy. Údaj ve sloupci \textbf{type} může nabývat hodnoty \textbf{USER} nebo \textbf{GROUP}. Jestliže nabývá hodnoty \textbf{USER}, potom je ve sloupci \textbf{principal\_id} obsažen identifikátor uživatele \textbf{perun id}. Pokud sloupec \textbf{type} obsahuje hodnotu \textbf{GROUP}, potom se ve sloupci \textbf{principal\_id} nachází identifikátor skupiny. Tato informace musela být zohledněna při nahrazování identifikátoru \textbf{principal\_id}. 
+Tabulka, které se týká zmiňované nahrazení identifikátoru \textbf{group id} za URN se nazývá \textbf{acl\_identity}. Uvedená tabulka má sloupce \textbf{id}, \textbf{principal\_id} a \textbf{type} ve kterých si drží své záznamy. Údaj ve sloupci \textbf{type} může nabývat hodnoty \textbf{USER} nebo \textbf{GROUP}. Jestliže nabývá hodnoty \textbf{USER}, potom je ve sloupci \textbf{principal\_id} obsažen identifikátor uživatele \textbf{perun id}. Pokud sloupec \textbf{type} obsahuje hodnotu \textbf{GROUP}, potom se ve sloupci \textbf{principal\_id} nachází identifikátor skupiny. Tato informace musela být zohledněna při nahrazování identifikátoru \textbf{principal\_id}. 
 
 \par 
 Pokud hodnota ve sloupci \textbf{principal\_id} představovala \textbf{perun id}, postupoval algoritmus jako v předchozím popisovaném případě a byl nahrazen za \textbf{einfra id}. Jestliže hodnota ve sloupci \textbf{principal\_id} představovala identifikátor skupiny, tento identifikátor musel být nahrazen za URN  dotyčné skupiny. Zmíněné nahrazení za URN bylo provedeno jednorázově pomocí webové služby Perun. Tentokrát již ale s použitím API rozhraní k získání dodatečných informací o požadované skupině. Volání představeného rozhraní bylo provedeno pomocí GET požadavku na URL adresu  \texttt{https://shongo-auth.cesnet.cz/perun/groups/\{group id\}}. Uvedený GET požadavek vrátil data o skupině v následující JSON struktuře.   
@@ -646,7 +658,7 @@ Význam jednotlivých atributů v odpovědi služby Perun je popsán v příloze
 Z uvedené odpovědi ve formátu JSON byl použit atribut \textbf{unique\_name}, který reprezentuje požadované URN skupiny. Za tuto hodnotu URN skupiny byla potom hodnota v sloupci \textbf{principal\_id} pomocí SQL příkazu nahrazena. Popsaný postup byl zopakován pro každý záznam v tabulce \textbf{acl\_identity}, kde hodnota ve sloupci \textbf{principal\_id} představovala identifikátor skupiny \textbf{group id}. 
 \par 
 
-Popsaná procedura vedla k uložení URN skupiny do tabulky \textbf{acl\_identity}. Aby odstranění volání webové služby Perun bylo kompletní, musela být provedena implementační změna, která adaptuje systém \texttt{meetings.cesnet.cz} na provedené úpravy v databázi. Jedná se o odstranění závislosti na volání webové služby Perun, která poskytovala informace o skupinách uživatele. Takto získané identifikátory skupin se dříve kontrolovaly vůči \textbf{perun id} v tabulce \textbf{acl\_identity}. Implementace OpenID Connect provozovaná v rámci Proxy IdP infrastruktury CESNETu ale poskytuje pouze URN skupin, do kterých uživatel patří. Na tuto skutečnost musela být kontrola příslušnosti uživatele adaptována. Implementaci zmíněné adaptace na straně systému \texttt{meetings.cesnet.cz} na nahrazení \textbf{group id} za URN skupiny popisuji v kapitole \hyperref[ShongoImpl-web]{4.3.3}. 
+Popsaná procedura vedla k uložení URN skupiny do tabulky \textbf{acl\_identity}. Aby odstranění volání webové služby Perun bylo kompletní, musela být provedena implementační změna, která adaptuje systém \texttt{meetings.cesnet.cz} na provedené úpravy v databázi. Jedná se o odstranění závislosti na volání webové služby Perun, která poskytovala informace o skupinách uživatele. Takto získané identifikátory skupin se dříve kontrolovaly vůči \textbf{group id} v tabulce \textbf{acl\_identity}. Implementace OpenID Connect provozovaná v rámci Proxy IdP infrastruktury CESNETu ale poskytuje pouze URN skupin, do kterých uživatel patří. Na tuto skutečnost musela být kontrola příslušnosti uživatele adaptována. Implementaci zmíněné adaptace na straně systému \texttt{meetings.cesnet.cz} na nahrazení \textbf{group id} za URN skupiny a další úpravy popisuji v kapitole \hyperref[ShongoImpl-web]{4.3.3}. 
 
 \subsection{Adaptace systému meetings.cesnet.cz na novou autentizační a autorizační vrstvu}
 \label{ShongoImpl-web}
@@ -670,7 +682,7 @@ Výchozí část URL adresy, která slouží jako prefix URL adresy zajištujíc
 \section{Získání uživatele}
 Následující údaje o uživateli jsou získány pomocí HTTP GET požadavku na URL adresu \texttt{https://shongo-auth.cesnet.cz/perun/users/\{perun id\}}
 \label{table:perunws:user}
-\begin{table}[h]
+\begin{table}[H]
 \begin{tabular}{|l|l|}
 \hline
 \texttt{id (int)}                   & \parbox[t]{6cm}{identifikátor uživatele v rámci Perun služby } \\ \hline
@@ -697,7 +709,7 @@ Následující údaje o uživateli jsou získány pomocí HTTP GET požadavku na
 Následující údaje o skupině jsou získány pomocí HTTP GET požadavku na URL adresu \texttt{https://shongo-auth.cesnet.cz/perun/groups/\{group id\}}
 
 \label{table:perunws:group}
-\begin{table}[h]
+\begin{table}[H]
 \begin{tabular}{|l|l|}
 \hline
 \texttt{id (int)}                       & \parbox[t]{6cm}{identifikátor skupiny v rámci Perun služby}  \\ \hline
@@ -715,7 +727,7 @@ Následující údaje o skupině jsou získány pomocí HTTP GET požadavku na U
 \end{table}
 
 \chapter{Ilustrace OpenID Connect požadavků}
-V této části přílohy popisuji nově vytvořené rozhraní serveru \texttt{shongo-auth.cesnet.cz}, které umožňuje zpracovávat autentizační požadavky. Je důležité zmínit, že vytvořené rozhraní v autentizační a autorizační vrstvě respektuje specifikaci OpenID Connect.
+V této části přílohy popisuji nově vytvořené rozhraní serveru \texttt{shongo-auth.cesnet.cz}, které umožňuje zpracovávat autentizační požadavky. Je důležité zmínit, že vytvořené rozhraní v autentizační a autorizační vrstvě respektuje specifikaci OpenID Connect. V kontextu uvedených příkladů, pojmy klient značí rezervační systém \texttt{meetings.cesnet.cz} a autorizační server představuje server \texttt{shongo-auth.cesnet.cz}.
 
 \section{Autentizace}
 Následuje příklad HTTP GET požadavku, který slouží k autentizaci uživatele do systému \texttt{meetings.cesnet.cz}.
@@ -729,13 +741,44 @@ https://shongo-auth.cesnet.cz/oidc-authn/oic/authorize
 &prompt=login
 \end{lstlisting}
 \noindent
-Význam parametrů:
+Význam parametrů v požadavku:
+\label{table:autentizace:req}
+\begin{table}[H]
+\begin{tabular}{|l|l|}
+\hline
+\texttt{client\_id}                             & \parbox[t]{9cm}{identifikace klienta u autorizačního serveru \texttt{shongo-auth.cesnet.cz}}  \\ \hline
+\texttt{redirect\_uri}                          & \parbox[t]{9cm}{URL adresa na kterou je prohlížeč přesměrován poautentizaci}  \\ \hline
+\texttt{state}                                  & \parbox[t]{9cm}{hodnota sloužící k udržení stavu mezi přihlašovacími požadavky a odpověďmi}  \\ \hline
+\texttt{scope}                                  & \parbox[t]{9cm}{obsahuje hodnotu \textbf{openid}, která značí že se jedná autentizační požadavek, která respektuje specifikaci protokolu OpenID Connect}  \\ \hline
+\texttt{response\_type}                         & \parbox[t]{9cm}{definuje způsob průběhu získání tokenů, v popisovaném požadavku má hodnotu \textbf{code}, což značí že se jedná o tzv. Authorization Code Flow}  \\ \hline
+\texttt{prompt}                                 & \parbox[t]{9cm}{dodatečná informace autorizačnímu serveru, požadující zobrazení autentizačního formuláře koncovému uživateli, i v případě že je uživatel přihlášen}  \\ \hline
 
+\end{tabular}
+\end{table}
 
+\noindent
+Příklad odpovědi autorizačního serveru \texttt{shongo-auth.cesnet.cz} na autentizační požadavek.
+\begin{lstlisting}
+https://meetings.cesnet.cz/login
+?code=02f83b3b9fd502f4d15fe8a9db8a17019adb79c2
+&state=26a09e72f0ccc
+\end{lstlisting}
+\noindent
+Význam parametrů v odpovědi:
+\label{table:autentizace}
+\begin{table}[H]
+\begin{tabular}{|l|l|}
+\hline
+\texttt{code}   & \parbox[t]{10.8cm}{Autorizační kód, který vygeneroval autorizační server, slouží k jednorázové výměně za Access nebo ID Token}  \\ \hline
+\texttt{state}  & \parbox[t]{10.8cm}{Stejná hodnota, jakou klient v tomto parametru definoval při autentizačním požadavku}  \\ \hline
+\end{tabular}
+\end{table}
 
 \section{Token Endpoint}
-Zde ilustruji příklad HTTP POST požadavku, který slouží k získání id tokenu. 
-
+Zde ilustruji příklad HTTP POST požadavku, který slouží k získání ID a Access tokenu. 
+\noindent
+Význam POST parametrů:
+Význam POST hlavičky: 
 \begin{lstlisting}
 https://shongo-auth.cesnet.cz/authn/oic/token
 \end{lstlisting}
