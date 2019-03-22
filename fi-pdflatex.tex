@@ -871,7 +871,6 @@ Příklad odpovědi ve formátu JSON:
 \begin{lstlisting}[language=json,firstnumber=1]
 {
     "id": "3e21c29ec2b940c3336b80c5141de4e79ba82f36@einfra.cesnet.cz",
-    "original_id": "3e21c29ec2b940c3336b80c5141de4e79ba82f36@einfra.cesnet.cz",
     "display_name": "Lukas Kotol",
     "first_name": "Lukas",
     "last_name": "Kotol",
@@ -905,24 +904,21 @@ Význam parametrů v odpovědi:
 \begin{table}[H]
 \begin{tabular}{|l|l|}
 \hline
-\texttt{id}   & \parbox[t]{7cm}{}  \\ \hline
-\texttt{original\_id}  & \parbox[t]{7cm}{}  \\ \hline
-\texttt{display\_name}  & \parbox[t]{7cm}{}  \\ \hline
-\texttt{first\_name}  & \parbox[t]{7cm}{}  \\ \hline
-\texttt{last\_name}  & \parbox[t]{7cm}{}  \\ \hline
-\texttt{mail}  & \parbox[t]{7cm}{}  \\ \hline
-\texttt{organization}  & \parbox[t]{7cm}{}  \\ \hline
-\texttt{language}  & \parbox[t]{7cm}{}  \\ \hline
-\texttt{zoneinfo}  & \parbox[t]{7cm}{}  \\ \hline
-\texttt{principal\_names}  & \parbox[t]{7cm}{}  \\ \hline
-\texttt{edu\_person\_entitlements}  & \parbox[t]{7cm}{}  \\ \hline
-\texttt{authn\_provider}  & \parbox[t]{7cm}{}  \\ \hline
-\texttt{authn\_instant}  & \parbox[t]{7cm}{}  \\ \hline
-\texttt{loa}  & \parbox[t]{7cm}{}  \\ \hline
+\texttt{id}                         &   \parbox[t]{6.8cm}{unikátní identifikátor uživatele v rámci ProxyIdP infrastruktry sdružení CESNET}  \\ \hline
+\texttt{display\_name}              & \parbox[t]{6.8cm}{kompletní jméno uživatele}  \\ \hline
+\texttt{first\_name}                & \parbox[t]{6.8cm}{křestní jméno uživatele}  \\ \hline
+\texttt{last\_name}                 & \parbox[t]{6.8cm}{příjmení uživatele}  \\ \hline
+\texttt{mail}  & \parbox[t]{6.8cm}{emailová adresa uživatele}  \\ \hline
+\texttt{organization}               & \parbox[t]{6.8cm}{mateřská organizace uživatele}  \\ \hline
+\texttt{language}                   & \parbox[t]{6.8cm}{preferovaný jazyk uživatele}  \\ \hline
+\texttt{zoneinfo}                   & \parbox[t]{6.8cm}{časové pásmo uživatele}  \\ \hline
+\texttt{principal\_names}           & \parbox[t]{6.8cm}{identifikátory v rámci jednotlivých skupin, v kterých je uživatel členem}  \\ \hline
+\texttt{edu\_person\_entitlements}  & \parbox[t]{6.8cm}{seznam skupin, kterých je uživatel členem}  \\ \hline
+\texttt{authn\_provider}            & \parbox[t]{6.8cm}{identifikace autorizačního serveru, v příkladu je uveden autorizační server Proxy IdP infrastruktury CESNETu}  \\ \hline
+\texttt{authn\_instant}             & \parbox[t]{6.8cm}{časová značka přihlášení uživatele}  \\ \hline
+\texttt{loa}                        & \parbox[t]{6.8cm}{představuje hodnotu LoA (Level of Assurance)}  \\ \hline
 
 \end{tabular}
 \end{table}
-
-
 
 \end{document}
