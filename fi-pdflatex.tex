@@ -503,12 +503,13 @@ V neposlední řadě je důležité poznamenat, že vývoj nové autentizační 
 Na závěr této kapitoly je důležité zmínit, že v rámci implementace byla zkopírována celé autentizační a autorizační vrstva do adresáře \texttt{/app/shongo-authn/}. Přístup k uvedenému adresáři přes webový server Apache je nastaven v konfiguračním souboru \texttt{/etc/apache2/sites-available/default-ssl} pomocí URL adresy \texttt{shongo-auth.cesnet.cz/oidc-authn}. Uvedená URL adresa je chráněna OpenID Connect modulem Apache, který byl nakonfigurován v kapitole \hyperref[shongo-location]{4.1.3}.
 
 \subsection{Zpracování a uložení uživatelských dat získaných z webové služby Perun}
+\label{zpracovaniAUlozeniPerun}
 V následujících odstavcích se zabývám popisem modifikací databáze, kterou rezervační systém \texttt{meetings.cesnet.cz} využívá pro svůj provoz. Před samotným popisem zpracování a uložení uživatelských dat získaných ze služby Perun je vhodné připomenout následující výrazy. Jde o výrazy, které  jednoznačně identifikují uživatele. První z nich je identifikátor \textbf{perun id}, který jednoznačně identifikuje uživatele v rámci webové služby Perun. Další identifikátor, tzv. \textbf{einfra id} identifikuje uživatele v rámci Proxy IdP infrastruktury provozované sdružením CESNET.  
 \par
 
 Je důležité poznamenat, že autorizační server OpenID Connect neumožňuje získat uživatelský identifikátor \textbf{perun id} prostřednictvím \textbf{Claims}. Bohužel systém \texttt{meetings.cesnet.cz} s tímto identifikátorem \textbf{perun id} pracuje, a proto byla nutná náhrada zmíněného identifikátoru za \textbf{einfra id}. Zmíněné náhradě identifikátorů předcházela modifikace databázového schématu, protože nový identifikátor \textbf{einfra id} by překračoval maximální povolenou délku sloupce vyhrazenou pro \textbf{perun id}. Uvedený sloupec s uživatelským identifikátorem se používal v tabulkách \textbf{person}, \textbf{user\_settings}, \textbf{resource}, \textbf{acl\_identity}, \textbf{reservation} a \textbf{abstract\_reservation\_request}. Jelikož je databázové schéma definované pomocí technologie Hibernate, došlo ke změně délky sloupce jak na straně databáze, tak na straně třídy definující vlastnosti používaných tabulek. 
 \par  
-Na straně zdrojového kódu jsem provedl změnu délky sloupce v souboru \texttt{cz/cesnet/shongo/controller/api/Controller.java}. Uvedená změna se týkala proměnné \texttt{USER\_ID\_COLUMN\_LENGTH}, která definuje délku sloupce. Sloupec je typu VARCHAR a byl změněn z délky 32 na 255. Dále byla provedena změna délky sloupce v databázových tabulkách pomocí následujícího SQL příkazu.
+Na straně zdrojového kódu systému \texttt{meetings.cesnet.cz} jsem provedl změnu délky sloupce v souboru \texttt{cz/cesnet/shongo/controller/api/Controller.java}. Uvedená změna se týkala proměnné \texttt{USER\_ID\_COLUMN\_LENGTH}, která definuje délku sloupce. Sloupec je typu VARCHAR a byl změněn z délky 32 na 255. Dále byla provedena změna délky sloupce v databázových tabulkách pomocí následujícího SQL příkazu.
 
 \begin{lstlisting}[
            language=SQL,
@@ -671,8 +672,28 @@ V této sekci se věnuji tématu, jakým způsobem musel být rezervační syst�
 Prvním krokem byla změna URL adresy výchozího bodu autentizace, \textbf{UserInfo endpointu} a \textbf{Token endpointu}. Důvodem představené změny bylo, aby zmíněné adresy, jejichž využití vyžaduje autentizaci pomocí protokolu OpenID Connect, odpovídaly nastavení definovaném v rámci konfigurace Apache. \par
 
 
-Výchozí část URL adresy, která slouží jako prefix URL adresy zajištující autentizaci a autorizaci je definována v souboru \texttt{cz/cesnet/shongo/client/web/ClientWebConfiguration.java}. Zmíněnou hodnotu, která je v stávající implementaci nastavena na URL adresu \texttt{/authn/oic} vrací metoda \texttt{getAuthenticationServerUrl}. Představenou část URL adresy jsem pozměnil na hodnotu \texttt{/oidc-authn/oic}, tak aby odpovídala URL adresám, které jsou chráněny OpenID Connect autentizací. Ostatní parametry URL adresy nebyly změněny. \par
+Výchozí část URL adresy, která slouží jako prefix URL adresy zajištující autentizaci a autorizaci je definována v souboru \texttt{cz/cesnet/shongo/client/web/ClientWebConfiguration.java}. Zmíněnou hodnotu, která je v stávající implementaci nastavena na URL adresu \texttt{/authn/oic} vrací metoda \texttt{getAuthenticationServerUrl}. Představenou část URL adresy jsem pozměnil na hodnotu \texttt{/oidc-authn/oic}, tak aby odpovídala URL adresám, které jsou chráněny OpenID Connect autentizací. Ostatní parametry URL adresy nebyly změněny. 
+\par
 
+Další fází adaptace systému \texttt{meetings.cesnet.cz} na nově vytvořenou autentizační a autorizační strukturu byla eliminace využívání webové služby Perun. Webová služba Perun se v systému \texttt{meetings.cesnet.cz} využívala k získání dodatečných informací o uživatelích a skupinách. V rámci této diplomové práce jsem zmíněné dodatečné informace o uživateli a skupině uložil do databáze a tudíž nyní není nutné všechny uložené údaje získávat voláním pomocí služby Perun. Popisu zmíněného uložení uživatelských údajů a informacích o skupinách se věnuji v kapitole \hyperref[zpracovaniAUlozeniPerun]{4.3.2}. 
+
+\par
+Před samotným popisem eliminace využívání volání webové služby Perun je vhodné znovu připomenout význam identifikátorů \textbf{perun id} a \textbf{einfra id}. Identifikátor \textbf{perun id} jednoznačně určuje uživatele v rámci webové služby Perun. Druhý identifikátor \textbf{einfra id}, jednoznačně identifikuje uživatele v Proxy IdP infrastruktuře CESNETu. V rámci adaptace systému \texttt{meetings.cesnet.cz} na provedené změny jsem v autentizační a autorizační vrstvě jsem modifikoval chování třídy \texttt{cz.cesnet.shongo.controller.authorization.ServerAuthorization}. Konkrétně šlo o modifikaci metod sloužících k získání uživatelských informací pomocí \textbf{perun id} (\texttt{onGetUserDataByUserId}), získání uživatelského \textbf{perun id} pomocí \textbf{eduPersonPrincipalName} (\texttt{onGetUserIdByPrincipalName}), získání skupiny pomocí \textbf{group id} (\texttt{onGetGroup}) a získání skupin kterých je uživatel členem (\texttt{onListUserGroupIds}). 
+
+\par
+
+Jak již bylo poznamenáno, první ze zmiňovaných metod \texttt{onGetUserDataByUserId} je v systému \texttt{meetings.cesnet.cz} využívána k získání informací o konkrétním uživateli pomocí jeho identifikátoru. Ve stávající implementaci se jako referenční identifikátor využívalo pouze \textbf{perun id}, v nové implementaci se uživatelské informace vyhledávají i pomocí identifikátoru \textbf{einfra id}. Vyhledávání uživatele prostřednictvím \textbf{perun id} pomocí webové služby Perun se ponechalo, protože je využíváno při přidávání dalších účastníku ve vytvářeném rezervačním požadavku. 
+
+\par 
+
+Jak již bylo zmíněno, prostřednictvím metody \texttt{onGetUserDataByUserId} je nově umožněno vyhledávat uživatele i pomocí identifikátoru \textbf{einfra id}. Zmíněné vyhledávání uživatelů pomocí \textbf{einfra id} je realizováno oproti uloženým uživatelským údajům v databázi systému \texttt{meetings.cesnet.cz}. Uvedené vyhledávání s použitím identifikátoru \textbf{einfra id}, je nyní možné, protože byla provedena transformace uživatelských identifikátorů všech stávajících uživatelů v tabulkách systému \texttt{meetings.cesnet.cz} z \textbf{perun id} na \textbf{einfra id}. Dále také došlo k uložení dodatečných informací o uživateli, které se dříve získávaly pomocí webové služby Perun. Představené uložení dodatečných uživatelských informací je popsáno v kapitole \hyperref[zpracovaniAUlozeniPerun]{4.3.2}. 
+\par
+
+Další modifikovaná metoda, jejíž chování jsem adaptoval na provedené změny v autentizační a autorizační infrastruktuře se nazývá \texttt{onGetUserIdByPrincipalName}. Uvedená metoda dříve sloužila k získání uživatelských údajů na základě poskytnutého \textbf{eduPersonPrincipalName} uživatele. TODO co je to eppn. 
+
+\par
+
+Dále bylo v rámci implementace na straně systému \texttt{meetings.cesnet.cz} zajištěno, že při vytváření rezervačních požadavku se uloží všechny potřebné dodatečné uživatelské údaje. Toto je možno , porotože, . Dříve se uvedená operace prováděla. 
 
 \chapter{Závěr}
 \printbibliography[title={Literatura}]
