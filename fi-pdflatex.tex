@@ -707,8 +707,22 @@ Algoritmus představené metody \textbf{onListUserGroupIds} jsem modifikoval tak
 V neposlední řadě bylo v rámci implementace na straně systému \texttt{meetings.cesnet.cz} zajištěno, že se při vytváření rezervačních požadavku uloží všechny potřebné informace o aktuálním přihlášeném uživateli. Ve stávající implementaci byl tento proces odlišný. Po vytvoření rezervačního požadavku se pouze uložil identifikátor uživatele \textbf{perun id}. Následným voláním webové služby Perun se potom získávaly dodatečné údaje o uživateli. V nynější implementaci jsou uloženy všechny informace o aktuálně přihlášeném uživateli a tudíž není potřeba využívat webovou službu Perun. 
 
 \chapter{Závěr}
+Cílem diplomové práce bylo vytvořit novou autentizační a autorizační infrastrukturu pro stávající video a webkonferenční prostředí provozované sdružením CESNET. V rámci vypracování této diplomové práce byla provedena analýza stávající autentizační a autorizační infrastruktury. Dále byl vyhotoven návrh a následná úspěšná implementace nové autentizační a autorizační infrastruktury.  
 
+\par 
 
+Konkrétně se jednalo o vytvoření nové autentizační a autorizační vrstvy pro systémy Adobe Connect a \texttt{meetings.cesnet.cz}. Jedním z klíčových požadavků bylo, aby autentizační a autorizační vrstva uvedené video a webkonferenční platformy byla integrováa do stávající Proxy IdP infrastruktury pomocí technologie OpenID Connect. Všechny představené cíle byly splněny a jsou dokumentovány v předcházejících kapitolách. 
+
+\par
+Implementovaná autentizační a autorizační vrstva nově není závislá na webové službě Perun. Přínosem uvedené změny je fakt, že webové služba Perun vykazovala při svém provozu známky nedostupnosti a nová implementace tedy zvyšuje robustnost celého video a webkonferenčního prostředí. Neméně důležitým faktem, který přispívá k lepší udržitelnosti celé autentizační a autorizační infrastruktury, je že při eliminaci závislosti na webové službě Perun došlo k výraznému zjednodušení zmíněné infrastruktury. Dalším přínosem nově vytvořené autentizační a autorizační infrastruktury je možnost připojit se do video a webkonferenčního prostředí pomocí identit z mezinárodní akademické federace eduGAIN. V neposlední řadě, napojením na novou autentizační a autorizační infrastrukturu vznikla možnost využívat dalších neakademických poskytovatelů identit jako jsou společnosti Google, Facebook, LinkedIn a Github. 
+
+\par
+
+Je vhodné zmínit, že nově vytvořená autentizační a autorizační vrstva systému \texttt{meetings.cesnet.cz} je stále otevřená k dalšímu zdokonalení. Netriviálním zjednodušením autentizační a autorizační vrstvy by mohlo být odstranění autorizačního serveru \texttt{shongo-auth.cesnet.cz}. Uvedený server slouží jako vrstva mezi autorizačním serverem v Proxy IdP infrastruktuře provozované sdružením CESNET a samotným rezervačním systémem \texttt{meetings.cesnet.cz}. V rámci snížení komplexnosti autentizační a autorizační vrstvy systému \texttt{meetings.cesnet.cz} se tedy nabízí tuto mezi vrstvu odstranit. Jelikož je server \texttt{shongo-auth.cesnet.cz} mimo jiné zodpovědný za autorizaci uživatelů, představená funkcionalita by musela být přesunuta až na stranu systému \texttt{meetings.cesnet.cz}. 
+
+\par 
+
+Celkově hodnotím přínos této diplomové práce kladně, jelikož značným způsobem zdokonalila mé znalosti v oblasti autentizačních a autorizačních systémů.
 
 \printbibliography[title={Literatura}]
 
