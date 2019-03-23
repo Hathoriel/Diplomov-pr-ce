@@ -678,24 +678,38 @@ Výchozí část URL adresy, která slouží jako prefix URL adresy zajištujíc
 Další fází adaptace systému \texttt{meetings.cesnet.cz} na nově vytvořenou autentizační a autorizační strukturu byla eliminace využívání webové služby Perun. Webová služba Perun se v systému \texttt{meetings.cesnet.cz} využívala k získání dodatečných informací o uživatelích a skupinách. V rámci této diplomové práce jsem zmíněné dodatečné informace o uživateli a skupině uložil do databáze a tudíž nyní není nutné všechny uložené údaje získávat voláním pomocí služby Perun. Popisu zmíněného uložení uživatelských údajů a informacích o skupinách se věnuji v kapitole \hyperref[zpracovaniAUlozeniPerun]{4.3.2}. 
 
 \par
-Před samotným popisem eliminace využívání volání webové služby Perun je vhodné znovu připomenout význam identifikátorů \textbf{perun id} a \textbf{einfra id}. Identifikátor \textbf{perun id} jednoznačně určuje uživatele v rámci webové služby Perun. Druhý identifikátor \textbf{einfra id}, jednoznačně identifikuje uživatele v Proxy IdP infrastruktuře CESNETu. V rámci adaptace systému \texttt{meetings.cesnet.cz} na provedené změny jsem v autentizační a autorizační vrstvě jsem modifikoval chování třídy \texttt{cz.cesnet.shongo.controller.authorization.ServerAuthorization}. Konkrétně šlo o modifikaci metod sloužících k získání uživatelských informací pomocí \textbf{perun id} (\texttt{onGetUserDataByUserId}), získání uživatelského \textbf{perun id} pomocí \textbf{eduPersonPrincipalName} (\texttt{onGetUserIdByPrincipalName}), získání skupiny pomocí \textbf{group id} (\texttt{onGetGroup}) a získání skupin kterých je uživatel členem (\texttt{onListUserGroupIds}). 
+Před samotným popisem eliminace využívání webové služby Perun je vhodné znovu připomenout význam identifikátorů \textbf{perun id} a \textbf{einfra id}. Identifikátor \textbf{perun id} jednoznačně určuje uživatele v rámci webové služby Perun. Druhý identifikátor \textbf{einfra id}, jednoznačně identifikuje uživatele v Proxy IdP infrastruktuře CESNETu. 
+\par V rámci adaptace systému \texttt{meetings.cesnet.cz} na provedené změny jsem v autentizační a autorizační vrstvě modifikoval chování třídy \texttt{cz.cesnet.shongo.controller.authorization.ServerAuthorization}. Konkrétně šlo o modifikaci metod sloužících k získání uživatelských informací pomocí \textbf{perun id} (\texttt{onGetUserDataByUserId}), získání uživatelského \textbf{perun id} pomocí \textbf{eduPersonPrincipalName} (\texttt{onGetUserIdByPrincipalName}), získání skupiny pomocí \textbf{group id} (\texttt{onGetGroup}) a získání skupin kterých je uživatel členem (\texttt{onListUserGroupIds}). 
 
-\par
 
-Jak již bylo poznamenáno, první ze zmiňovaných metod \texttt{onGetUserDataByUserId} je v systému \texttt{meetings.cesnet.cz} využívána k získání informací o konkrétním uživateli pomocí jeho identifikátoru. Ve stávající implementaci se jako referenční identifikátor využívalo pouze \textbf{perun id}, v nové implementaci se uživatelské informace vyhledávají i pomocí identifikátoru \textbf{einfra id}. Vyhledávání uživatele prostřednictvím \textbf{perun id} pomocí webové služby Perun se ponechalo, protože je využíváno při přidávání dalších účastníku ve vytvářeném rezervačním požadavku. 
+\subsubsection{Metoda \texttt{onGetUserDataByUserId}}
+
+Jak již bylo poznamenáno, první z metod \texttt{onGetUserDataByUserId} je v systému \texttt{meetings.cesnet.cz} využívána k získání informací o konkrétním uživateli pomocí jeho identifikátoru. Ve stávající implementaci se jako referenční identifikátor využívalo pouze \textbf{perun id}, v nové implementaci se uživatelské informace vyhledávají i pomocí identifikátoru \textbf{einfra id}. Vyhledávání uživatele prostřednictvím \textbf{perun id} pomocí webové služby Perun se ponechalo, protože je využíváno při přidávání dalších účastníku ve vytvářeném rezervačním požadavku. 
 
 \par 
 
-Jak již bylo zmíněno, prostřednictvím metody \texttt{onGetUserDataByUserId} je nově umožněno vyhledávat uživatele i pomocí identifikátoru \textbf{einfra id}. Zmíněné vyhledávání uživatelů pomocí \textbf{einfra id} je realizováno oproti uloženým uživatelským údajům v databázi systému \texttt{meetings.cesnet.cz}. Uvedené vyhledávání s použitím identifikátoru \textbf{einfra id}, je nyní možné, protože byla provedena transformace uživatelských identifikátorů všech stávajících uživatelů v tabulkách systému \texttt{meetings.cesnet.cz} z \textbf{perun id} na \textbf{einfra id}. Dále také došlo k uložení dodatečných informací o uživateli, které se dříve získávaly pomocí webové služby Perun. Představené uložení dodatečných uživatelských informací je popsáno v kapitole \hyperref[zpracovaniAUlozeniPerun]{4.3.2}. 
+Jak již bylo zmíněno, prostřednictvím metody \texttt{onGetUserDataByUserId} je nově umožněno vyhledávat uživatele i pomocí identifikátoru \textbf{einfra id}. Zmíněné vyhledávání uživatelů pomocí \textbf{einfra id} je realizováno oproti uloženým uživatelským údajům v databázi systému \texttt{meetings.cesnet.cz}. Konkrétně jde o tabulky \textbf{person} a \textbf{user\_settings} v kterých se uživatelské údaje vyhledávají. Uvedené vyhledávání s použitím identifikátoru \textbf{einfra id}, je nyní možné, protože byla provedena transformace uživatelských identifikátorů všech stávajících uživatelů v tabulkách systému \texttt{meetings.cesnet.cz} z \textbf{perun id} na \textbf{einfra id}. Dále také došlo k uložení dodatečných informací o uživateli, které se dříve získávaly pomocí webové služby Perun. Představené uložení dodatečných uživatelských informací je popsáno v kapitole \hyperref[zpracovaniAUlozeniPerun]{4.3.2}. 
+\subsubsection{Metoda \texttt{onGetUserIdByPrincipalName}}
+
+Další modifikovaná metoda, jejíž chování jsem adaptoval na provedené změny v autentizační a autorizační infrastruktuře se nazývá \texttt{onGetUserIdByPrincipalName}. Uvedená metoda dříve sloužila k získání identifikátoru \textbf{perun id} na základě poskytnutého \textbf{eduPersonPrincipalName} uživatele prostřednictvím webové služby Perun. Zmíněné \textbf{eduPersonPrincipalName} je jednoznačný identifikátor v rámci federace, mající formát uživatelské\_jméno@doména. V nové implementaci je nyní místo \textbf{perun id} vyhledáváno \textbf{einfra id}. Zmíněné \textbf{einfra id} je nyní vyhledáváno v databázi systému \texttt{meetings.cesnet.cz}, konkrétně vůči všem uživatelským záznamům v tabulce \textbf{person}. Jak již bylo zmíněno, vyhledávání uživatelských údajů v databázi je v nynější implementaci umožněno díky předcházejícímu uložení dodatečných uživatelských údajů do tabulek \textbf{person} a \textbf{user\_settings}.
+
+\subsubsection{Metoda \texttt{onGetGroup}}
+
+Další fáze adaptace na odstranění závislosti služby Perun sestávala z modifikace metody \textbf{onGetGroup}. Uvedená metoda \textbf{onGetGroup} slouží získání k údajů o skupině na základě identifikátoru dané skupiny. Ve stávající implementaci metoda obdobně jako v předchozích případech využívala volání webové služby Perun. V nynější implementaci je chování představené metody koncipováno odlišným způsobem. Logiku uvažované metody \textbf{onGetGroup} jsem pozměnil tak, aby místo volání webové služby Perun, využívala uložené údaje v databázi. Konkrétně jde o tabulku \textbf{acl\_identity} v které se nyní údaje o skupinách vyhledávají. 
+
+\subsubsection{Metoda \texttt{onListUserGroupIds}}
+Poslední modifikovaná metoda v třídě \texttt{cz.cesnet.shongo.controller.authorization.ServerAuthorization} se nazývá \textbf{onListUserGroupIds}. Funkcionalita představené metody ve stávající implementaci spočívala v nalezení všech \textbf{group id} skupin, kterých je uživatel s příslušným \textbf{perun id} členem. Je důležité zmínit, že metoda \textbf{onListUserGroupIds} se využívá ke kontrole příslušnosti uživatele do skupin, jejichž členové mají povoleno rezervovat speciální zdroje. Uvažovaná kontrola probíhala vůči uloženým záznamům s příslušnými \textbf{group id} v databázové tabulce \textbf{acl\_identity} systému \texttt{meetings.cesnet.cz}. Na základě příslušných \textbf{group id} uložených v tabulce \textbf{acl\_identity} bylo potom uživateli umožněno alokovat speciální zdroje. Jelikož došlo k transformaci \textbf{group id} na identifikátor skupiny URN ve zmiňované tabulce \textbf{acl\_identity}, musel být algoritmus metody \textbf{onListUserGroupIds} na tyto změny adaptován. Uvedenému nahrazení identifikátoru \textbf{group id} za URN skupin v tabulce \textbf{acl\_identity} se věnuji v kapitole \hyperref[zpracovaniAUlozeniPerun]{4.3.2}. 
+\par
+Algoritmus představené metody \textbf{onListUserGroupIds} jsem modifikoval tak, aby místo seznamu identifikátorů skupin \textbf{group id} vracel seznam URN dotyčných skupin. Uvedené funkcionality bylo dosaženo prostřednictvím \textbf{UserInfo Endpointu}, který jsem upravil tak, aby vracel seznam URN skupin v kterých je přihlášený uživatel členem. Jak je z textu zřejmé, aby metoda \textbf{onListUserGroupIds} mohla využívat \textbf{UserInfo Endpoint}, musel být nahrazen vstupní argument metody \textbf{perun id} za \textbf{Access Token}. Je důležité poznamenat, že nyní lze tedy získat pouze takové URN skupin, jejichž je aktuálně přihlášený uživatel členem. Tato funkcionalita je dostačující, protože v rámci rezervačního procesu se kontrolují práva na rezervace speciálních zdrojů pouze přihlášeným uživatelům. Díky této modifikaci mohou být získané URN skupin spárována s uloženými URN skupin v databázi. Následně tedy může dojít ke kontrole zda, je aktuálně přihlášenému uživateli dovoleno využívat specifické zdroje, podmíněné příslušností uživatele do určitých skupin.
+
 \par
 
-Další modifikovaná metoda, jejíž chování jsem adaptoval na provedené změny v autentizační a autorizační infrastruktuře se nazývá \texttt{onGetUserIdByPrincipalName}. Uvedená metoda dříve sloužila k získání uživatelských údajů na základě poskytnutého \textbf{eduPersonPrincipalName} uživatele. TODO co je to eppn. 
-
-\par
-
-Dále bylo v rámci implementace na straně systému \texttt{meetings.cesnet.cz} zajištěno, že při vytváření rezervačních požadavku se uloží všechny potřebné dodatečné uživatelské údaje. Toto je možno , porotože, . Dříve se uvedená operace prováděla. 
+V neposlední řadě bylo v rámci implementace na straně systému \texttt{meetings.cesnet.cz} zajištěno, že se při vytváření rezervačních požadavku uloží všechny potřebné informace o aktuálním přihlášeném uživateli. Ve stávající implementaci byl tento proces odlišný. Po vytvoření rezervačního požadavku se pouze uložil identifikátor uživatele \textbf{perun id}. Následným voláním webové služby Perun se potom získávaly dodatečné údaje o uživateli. V nynější implementaci jsou uloženy všechny informace o aktuálně přihlášeném uživateli a tudíž není potřeba využívat webovou službu Perun. 
 
 \chapter{Závěr}
+
+
+
 \printbibliography[title={Literatura}]
 
 \appendix %% Start the appendices.
@@ -843,11 +857,11 @@ code:39757a190fbe6aab7c168ddb3c40670fb1a75932
 Příklad odpovědi požadavku:
 \begin{lstlisting}[language=json,firstnumber=1]
 {
-    "access_token": "d177e503e5da6946f5a9e6f5c5780573d9ed0ea8",
-    "token_type": "bearer",
-    "expires_in": 43200,
-    "refresh_token": "not set",
-    "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvc2hvbmdvLWF1dGguY2VzbmV0LmN6XC9vaWRjLWF1dGhuXC8iLCJzdWIiOiIzZTIxYzI5ZWMyYjk0MGMzMzM2YjgwYzUxNDFkZTRlNzliYTgyZjM2QGVpbmZyYS5jZXNuZXQuY3oiLCJhdWQiOiJzaG9uZ28tY2xpZW50LXdlYiIsImV4cCI6MTU1MzE4Njk0NiwiaWF0IjoxNTUzMTg2NjQ2LCJub25jZSI6bnVsbH0=.BveRgKxXuNVsAZRw2bPRnEf5Y+4HSVlijri38HLM40Q="
+  "access_token": "d177e503e5da6946f5a9e6f5c5780573d9ed0ea8",
+  "token_type": "bearer",
+  "expires_in": 43200,
+  "refresh_token": "not set",
+  "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvc2hvbmdvLWF1dGguY2VzbmV0LmN6XC9vaWRjLWF1dGhuXC8iLCJzdWIiOiIzZTIxYzI5ZWMyYjk0MGMzMzM2YjgwYzUxNDFkZTRlNzliYTgyZjM2QGVpbmZyYS5jZXNuZXQuY3oiLCJhdWQiOiJzaG9uZ28tY2xpZW50LXdlYiIsImV4cCI6MTU1MzE4Njk0NiwiaWF0IjoxNTUzMTg2NjQ2LCJub25jZSI6bnVsbH0=.BveRgKxXuNVsAZRw2bPRnEf5Y+4HSVlijri38HLM40Q="
 }
 \end{lstlisting}
 
@@ -891,31 +905,31 @@ Parametry hlavičky:
 Příklad odpovědi ve formátu JSON:
 \begin{lstlisting}[language=json,firstnumber=1]
 {
-    "id": "3e21c29ec2b940c3336b80c5141de4e79ba82f36@einfra.cesnet.cz",
-    "display_name": "Lukas Kotol",
-    "first_name": "Lukas",
-    "last_name": "Kotol",
-    "mail": "433265@mail.muni.cz",
-    "organization": "Masarykova univerzita",
-    "language": "cs",
-    "zoneinfo": "Europe/Prague",
-    "principal_names": [
-        "433265@muni.cz",
-        "740847938b9b7b88c940034c6b7696e8f00d9f5d@west-life.eu",
-        "3e21c29ec2b940c3336b80c5141de4e79ba82f36@einfra.cesnet.cz",
-        "107533160484586378901@google.extidp.cesnet.cz"
-    ],
-    "edu_person_entitlements": [
-        "urn:geant:cesnet.cz:group:sitola:multimedia#perun.cesnet.cz",
-        "urn:geant:cesnet.cz:group:einfra:einfra#perun.cesnet.cz",
-        "urn:geant:cesnet.cz:group:shongo#perun.cesnet.cz",
-        "urn:geant:cesnet.cz:group:zlamal_test#perun.cesnet.cz",
-        "urn:geant:cesnet.cz:group:sitola#perun.cesnet.cz",
-        "urn:geant:cesnet.cz:group:einfra#perun.cesnet.cz"
-    ],
-    "authn_provider": "https://login.cesnet.cz/oidc/",
-    "authn_instant": "1553188450",
-    "loa": 2
+  "id": "3e21c29ec2b940c3336b80c5141de4e79ba82f36@einfra.cesnet.cz",
+  "display_name": "Lukas Kotol",
+  "first_name": "Lukas",
+  "last_name": "Kotol",
+  "mail": "433265@mail.muni.cz",
+  "organization": "Masarykova univerzita",
+  "language": "cs",
+  "zoneinfo": "Europe/Prague",
+  "principal_names": [
+    "433265@muni.cz",
+    "740847938b9b7b88c940034c6b7696e8f00d9f5d@west-life.eu",
+    "3e21c29ec2b940c3336b80c5141de4e79ba82f36@einfra.cesnet.cz",
+    "107533160484586378901@google.extidp.cesnet.cz"
+  ],
+  "edu_person_entitlements": [
+    "urn:geant:cesnet.cz:group:sitola:multimedia#perun.cesnet.cz",
+    "urn:geant:cesnet.cz:group:einfra:einfra#perun.cesnet.cz",
+    "urn:geant:cesnet.cz:group:shongo#perun.cesnet.cz",
+    "urn:geant:cesnet.cz:group:zlamal_test#perun.cesnet.cz",
+    "urn:geant:cesnet.cz:group:sitola#perun.cesnet.cz",
+    "urn:geant:cesnet.cz:group:einfra#perun.cesnet.cz"
+  ],
+  "authn_provider": "https://login.cesnet.cz/oidc/",
+  "authn_instant": "1553188450",
+  "loa": 2
 }
 \end{lstlisting}
 
