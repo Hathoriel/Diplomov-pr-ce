@@ -60,9 +60,9 @@
     keywords      = {OpenID Connect, autentizace, autorizace, rezervační systém Shongo, Adobe Connect, CESNET, videokonference, webkonference},
     TeXkeywords   = {OpenID Connect, autentizace, autorizace, rezervační systém Shongo, Adobe Connect, CESNET, videokonference, webkonference},
     abstract      = {Diplomová práce se zabývá návrhem a implementací nové autentizační a autorizační infrastruktury pro webkonferenční prostředí provozované sdružením CESNET, které sestavá ze služeb meetings.cesnet.cz a Adobe Connect. Implementace nové autentizační a autorizační infrastruktury je založena na technologii OpenID Connect a využívá Proxy IdP v infrastruktuře CESNETu \cite{proxyIdpPresentation}. Součástí práce je také analýza stávající autentizační a autorizační infrastruktury, na kterou implementace navazuje. \par První část práce se věnuje analýze požadavků a návrhu nové autentizační a autorizační infrastruktury. Druhá část představuje použité technologie, které byly využity při implementaci. Třetí a zároveň poslední část práce popisuje samotnou implementaci nové autentizační a autorizační vrstvy pro služby meetings.cesnet.cz a Adobe Connect},
-    thanks        = {These are the acknowledgements for my thesis, which can
-
-                     span multiple paragraphs.},
+    thanks        = {Děkuji mému vedoucímu diplomové práce RNDr. Miloši Liškovi, Ph.D.,
+za přínosné rady a ochotu při spolupráci. Také bych velmi rád poděkoval své rodině a dalším, kteří mě motivovaly při vypracování mé
+diplomové práce.},
     bib           = example.bib,
 }
 \usepackage{makeidx}      %% The `makeidx` package contains
@@ -192,7 +192,7 @@ Postup při přihlašování uživatele do systému \texttt{meetings.cesnet.cz} 
 
 Představená URL adresa je namapována na metodu \texttt{authorizeAction} třídy \texttt{AuthorizeController}, která se nachází v modulu \textbf{zf2-openid-connect-server-module}. Ve zmíněném modulu  se nacházejí i následující představované třídy. V uvedené metodě \texttt{authorizeAction} začíná běh autentizačního algoritmu. \par 
 
-Dále je v metodě \texttt{authorizeAction} provedena kontrola, zda je uživatel již přihlášen. Pokud tato skutečnost nastala, předá se řízení algoritmu metodě \texttt{responseAction} nacházející se v aktuální třídě \texttt{AuthorizeController}. Uvedená metoda načte a  aktualizuje data udržované v kontextu o přihlášeném uživateli. Jedná se o objekt \textbf{session} a \textbf{authorize code}. Uvedený objekt \textbf{session} jednoznačně identifikuje vytvořené sezení. \textbf{Authorize code} je textový řetězec, který po autentizaci obdrží klient od autorizačního serveru. Zmíněný \textbf{Authorize code} slouží k jednorázové výměně za tzv. \textbf{ID Token} nebo \textbf{Access Token}. Dalšímu použití uvedených žetonů se detailněji zabývám v rámci popisu technologií v kapitolách \hyperref[sec:oauth]{3.1} a \hyperref[sec:oidc]{3.2}. S řetězcem \textbf{Authorize Code} je uživatel přesměrován na úvodní stránku přihlášeného uživatele portálu \texttt{meetings.cesnet.cz}. Metodě \texttt{responseAction} se dále věnuji v \hyperref[sec:responseAction]{odstavci níže}. \par 
+Dále je v metodě \texttt{authorizeAction} provedena kontrola, zda je uživatel již přihlášen. Pokud tato skutečnost nastala, předá se řízení algoritmu metodě \texttt{responseAction} nacházející se v aktuální třídě \texttt{AuthorizeController}. Uvedená metoda načte a  aktualizuje data udržované v kontextu o přihlášeném uživateli. Jedná se o objekt \textbf{session} a \textbf{authorize code}. Uvedený objekt \textbf{session} jednoznačně identifikuje vytvořené sezení. \textbf{Authorize code} je textový řetězec, který po autentizaci obdrží klient od autorizačního serveru. Zmíněný \textbf{Authorize code} slouží k jednorázové výměně za tzv. \textbf{ID Token} nebo \textbf{Access Token}. Dalšímu použití uvedených žetonů se detailněji zabývám v rámci popisu technologií v kapitolách \hyperref[sec:oauth]{3.1} a \hyperref[sec:oidc]{3.2}. S řetězcem \textbf{Authorize Code} je uživatel přesměrován na úvodní stránku přihlášeného uživatele portálu \texttt{meetings.cesnet.cz}. \par 
 
 Jestliže uživatel autentizovaný ještě není, je přesměrován na URL adresu \texttt{shongo-auth.cesnet.cz/authn/oic/authn/shibboleth}. Jelikož je v nastavení Apache uvedená URL adresa vedena jako chráněná systémem Shibboleth, je uživatel přesměrován na již popisovaný rozcestník federace identit. Po přihlášení u vybraného poskytovatele identit se nastaví základní uživatelské atributy do proměnných prostředí Apache serveru. Zmíněné uživatelské informace jsou přístupné v poli \texttt{\$\_SERVER} v atributech \textbf{epp}, \textbf{mail}, \textbf{givenName} a \textbf{sn}. Jde tedy o stejné uživatelské atributy, které byly představeny v kapitole \hyperref[item:adobe-connect]{2.1.1} zabývající se popisem stávající autentizační vrstvy systému Adobe Connect. Dále je provedeno přesměrování zpět na URL adresu \texttt{shongo-auth.cesnet.cz/authn/oic/authn/shibboleth}, kde se již spustí metoda \texttt{authenticateAction} třídy \texttt{ShibbolethController}. \par
 
@@ -444,7 +444,7 @@ V neposlední řadě, je důležité poznamenat, že nová implementace autentiz
 
 \section{Implementace autentizační a autorizační vrstvy systému meetings.cesnet.cz}
 \label{ShongoImpl}
-V této kapitole se zabývám popisem postupu implementace při integraci stávající autentizační a autorizační vrstvy služby \texttt{meetings.cesnet.cz} do Proxy IdP provozované sdružením CESNET. V podkapitole \hyperref[ShongoImpl-authn]{4.3.1} představuji implementaci na straně serveru \texttt{shongo-auth.cesnet.cz}. Kapitola \hyperref[ShongoImpl-authn]{4.3.2} pojednává o implementačních změnách na straně rezervačního systému Shongo, provozovaného na portálu \texttt{meetings.cesnet.cz}. 
+V této kapitole se zabývám popisem postupu implementace při integraci stávající autentizační a autorizační vrstvy služby \texttt{meetings.cesnet.cz} do Proxy IdP provozované sdružením CESNET. V kapitole \hyperref[ShongoImpl-authn]{4.3.1} představuji implementaci na straně serveru \texttt{shongo-auth.cesnet.cz}. V další kapitole \hyperref[zpracovaniAUlozeniPerun]{4.3.2} se věnuji popisu implementace zpracování a uložení dat získaných z webové služby Perun. Kapitola \hyperref[ShongoImpl-web]{4.3.3} pojednává o implementačních změnách na straně rezervačního systému Shongo, provozovaného na portálu \texttt{meetings.cesnet.cz}. 
 
 \subsection{Implementace autentizační a autorizační logiky na serveru shongo-auth.cesnet.cz}
 \label{ShongoImpl-authn}
@@ -502,7 +502,7 @@ V neposlední řadě je důležité poznamenat, že vývoj nové autentizační 
 Všechny nově vytvořené URL adresy sloužící k autentizaci, získání tokenu a uživatelských údajů jsou popsány v příloze \hyperref[oidcEndpoints]{B} (jde o tzv. Endpointy).
 \par 
 
-Na závěr této kapitoly je důležité zmínit, že v rámci implementace byla zkopírována celá autentizační a autorizační vrstva portálu \texttt{meetings.cesnet.cz} do adresáře \texttt{/app/shongo-authn/}. Přístup k uvedenému adresáři přes webový server Apache je nastaven v konfiguračním souboru \texttt{/etc/apache2/sites-available/default-ssl} pomocí URL adresy \texttt{shongo-auth.cesnet.cz/oidc-authn}. Uvedená URL adresa je chráněna OpenID Connect modulem Apache, který byl nakonfigurován v kapitole \hyperref[shongo-location]{4.1.3}.
+Na závěr této kapitoly je důležité zmínit, že v rámci implementace byla zkopírována celá autentizační a autorizační vrstva portálu \texttt{meetings.cesnet.cz} do adresáře \texttt{/app/shongo-authn/}. Přístup k uvedenému adresáři přes webový server Apache je nastaven v konfiguračním souboru \texttt{/etc/apache2/sites-available/default-ssl} pomocí URL adresy \texttt{shongo-auth.cesnet.cz/oidc-authn}. Uvedená URL adresa je chráněna OpenID Connect modulem Apache, který byl nakonfigurován v kapitole \hyperref[sec:mod-conf]{4.1.3}.
 
 \subsection{Zpracování a uložení uživatelských dat získaných z webové služby Perun}
 \label{zpracovaniAUlozeniPerun}
@@ -535,7 +535,7 @@ Dalším krokem algoritmu bylo získání identifikátoru \textbf{einfra id} z p
 
 \par
 
-V závěrečné fázi algoritmu je pro každého takto vytvořeného objektu uživatele v aktuálně zpracovávané tabulce nahrazeno \textbf{perun id} za \textbf{einfra id}. Jak již bylo zmíněno, speciálním případem jsou tabulky \textbf{person} a \textbf{user\_settings}, kde došlo navíc k vložení chybějících uživatelských údajů. Následující obrázek \hyperref[fig:erd-person-user-settings]{4.1} ilustruje schéma tabulek \textbf{person} a \textbf{user\_settings}. 
+V závěrečné fázi algoritmu je pro každého takto vytvořeného objektu uživatele v aktuálně zpracovávané tabulce nahrazeno \textbf{perun id} za \textbf{einfra id}. Jak již bylo zmíněno, speciálním případem jsou tabulky \textbf{person} a \textbf{user\_settings}, kde došlo navíc k vložení chybějících uživatelských údajů. Následující obrázek 4.1 ilustruje schéma tabulek \textbf{person} a \textbf{user\_settings}. 
 
 \begin{figure}[H]
 \label{fig:erd-person-user-settings}
