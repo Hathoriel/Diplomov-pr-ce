@@ -211,7 +211,7 @@ Následující obrázek \hyperref[fig:shongoAuthnProcess]{2.1} znázorňuje pře
 \begin{figure}[H]
 \caption{Schéma komunikace při zpracování autentizačního požadavku do systému Shongo}
 \centering
-\includegraphics[width=12.8cm]{pics/shongoAuthSystem} 
+\includegraphics[width=12.8cm]{pics/shongo-auth-layer-old} 
 \label{fig:shongoAuthnProcess}
 \end{figure}
 \par 
@@ -503,6 +503,24 @@ Jak již bylo představeno v popisu stávající autentizační a autorizační 
 
 Po nastavení objektu představujícího uživatele vypsanými atributy pokračuje autentizační algoritmus stejným způsobem jako v případě stávající implementace popsané v kapitole \hyperref[meetings-old]{2.1.2}.
 
+\par
+
+V neposlední řadě je důležité poznamenat, že vývoj nové autentizační vrstvy systému \texttt{meetings.cesnet.cz} zahrnoval přejmenování stávajících tříd. V rámci těchto operací, jsem vytvořil třídu \texttt{OIDCController}. Zmíněná třída kopíruje chování třídy \texttt{ShibbolethController}. Jde tedy o logiku, která uživatele přesměruje na rozcestník federace identit v infrastruktuře OpenID Connect CESNETu kde proběhne autentizace. K této změně vedla nutnost zachování jmenných konvencí, tak aby název odpovídal chování dotyčné třídy. 
+
+\par
+Dále jsem definoval nové HTTP rozhraní sloužící k autentizaci, získání tokenu a uživatelských údajů. Zmíněné rozhraní je popsáno v příloze \hyperref[oidcEndpoints]{B} (jde o tzv. Endpointy).
+\par 
+
+
+Provedené změny v autentizační vrstvě systému \texttt{meetings.cesnet.cz} ilustruje následující schéma komunikace v obrázku \hyperref[fig:shongoAuthnProcessNew]{4.1}.
+
+\begin{figure}[H]
+\caption{Schéma komunikace při zpracování autentizačního požadavku v nové autentizační a autorizační vrstvě systému Shongo}
+\centering
+\includegraphics[width=12.8cm]{pics/shongo-auth-layer-new} 
+\label{fig:shongoAuthnProcessNew}
+\end{figure}
+
 
 \subsection{Implementace autorizační logiky na serveru shongo-auth.cesnet.cz}
 \label{ShongoImpl-authr}    
@@ -519,10 +537,7 @@ V další fázi implementace nové autentizační a autorizační vrstvy na stra
 
 \par
 
-V neposlední řadě je důležité poznamenat, že vývoj nové autentizační a autorizační vrstvy systému \texttt{meetings.cesnet.cz} zahrnoval přejmenování stávajících tříd. V rámci těchto operací, jsem vytvořil třídu \texttt{OIDCController}. Zmíněná třída kopíruje chování třídy \texttt{ShibbolethController}. Jde tedy o logiku, která uživatele přesměruje na rozcestník federace identit v infrastruktuře OpenID Connect CESNETu kde proběhne autentizace. K této změně vedla nutnost zachování jmenných konvencí, tak aby název odpovídal chování dotyčné třídy. 
-\par
-Všechny nově vytvořené URL adresy sloužící k autentizaci, získání tokenu a uživatelských údajů jsou popsány v příloze \hyperref[oidcEndpoints]{B} (jde o tzv. Endpointy).
-\par 
+
 
 Na závěr této kapitoly je důležité zmínit, že v rámci implementace byla zkopírována celá autentizační a autorizační vrstva portálu \texttt{meetings.cesnet.cz} do adresáře \texttt{/app/shongo-authn/}. Přístup k uvedenému adresáři přes webový server Apache je nastaven v konfiguračním souboru \texttt{/etc/apache2/sites-available/default-ssl} pomocí URL adresy \texttt{shongo-auth.cesnet.cz/oidc-authn}. Uvedená URL adresa je chráněna OpenID Connect modulem Apache, který byl nakonfigurován v kapitole \hyperref[sec:mod-conf]{4.1.3}.
 
